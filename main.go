@@ -20,7 +20,27 @@ func main() {
 
 	// Bouton de recherche
 	searchButton := widget.NewButton("Search", func() {
-		searchResults.SetText("Results for: " + searchBar.Text)
+
+		// Récupérer le texte de la recherche
+		searchText := searchBar.Text
+
+		// Comparer avec une liste dans un tableau
+		artists := []string{"artist1", "artist2", "artist3"} // Remplacez ceci par votre propre liste d'artistes
+
+		var found bool
+		for _, artist := range artists {
+			if searchText == artist {
+				found = true
+				break
+			}
+		}
+
+		// Afficher les résultats
+		if found {
+			searchResults.SetText("Artist found: " + searchText)
+		} else {
+			searchResults.SetText("Artist not found: " + searchText)
+		}
 	})
 
 	// Disposition widget
@@ -31,6 +51,6 @@ func main() {
 	)
 
 	myWindow.SetContent(content)
-	myWindow.Resize(fyne.NewSize(400, 300)) // ajustement size
+	myWindow.Resize(fyne.NewSize(1080, 720)) // ajustement size
 	myWindow.ShowAndRun()
 }
