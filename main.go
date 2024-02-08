@@ -103,7 +103,6 @@ func main() {
 		// Ajouter un espacement après chaque ligne
 		artistsContainer.Add(rowContainer)
 		artistsContainer.Add(layout.NewSpacer()) // Ajouter un espacement
-		artistsContainer.Add(layout.NewSpacer()) // Ajouter un espacement
 	}
 
 	// Créer un conteneur de défilement pour le conteneur principal
@@ -137,6 +136,57 @@ func main() {
 	myWindow.ShowAndRun()
 }
 
+func createBlockContent() fyne.CanvasObject {
+	// Chemin de l'image
+	imagePath := "public/world_map.jpg"
+
+	// Charger l'image
+	image := canvas.NewImageFromFile(imagePath)
+
+	// Vérifier les erreurs lors du chargement de l'image
+	if image == nil {
+		fmt.Println("Impossible de charger l'image:", imagePath)
+		return nil
+	}
+
+	// Redimensionner l'image à la taille spécifiée
+	image.Resize(fyne.NewSize(1000, 120))
+
+	// Créer le texte
+	title := widget.NewLabel("Geolocation feature")
+	description := widget.NewLabel("Find out where and when your favorite artists will be performing around the globe.")
+	description.Wrapping = fyne.TextWrapWord // Activer le wrapping du texte
+
+	// Créer un conteneur pour organiser le texte
+	textContainer := fyne.NewContainerWithLayout(layout.NewVBoxLayout(),
+		title,
+		description,
+	)
+
+	// Créer un conteneur pour organiser l'image et le texte côte à côte
+	content := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		image,
+		textContainer,
+	)
+
+	// Créer un conteneur pour la carte de contenu avec un rectangle de contour arrondi
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), content)
+	cardContent.Resize(fyne.NewSize(1000, 120))
+
+	// Créer un rectangle de contour avec des coins arrondis
+	border := canvas.NewRectangle(color.Transparent) // Définir une couleur transparente pour le remplissage
+	border.SetMinSize(fyne.NewSize(1000, 120))
+	border.Resize(fyne.NewSize(996, 116)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
+	border.StrokeColor = color.Black      // Définir la couleur de la bordure
+	border.StrokeWidth = 3                // Définir l'épaisseur de la bordure
+	border.CornerRadius = 20              // Définir les coins arrondis
+
+	// Ajouter le rectangle de contour à la carte de contenu
+	cardContent.AddObject(border)
+
+	return cardContent
+}
+
 func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	// Redimensionner l'image
 	image := canvas.NewImageFromFile(artist.Image)
@@ -149,7 +199,9 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 
 	// Créer un rectangle coloré pour l'arrière-plan de la carte
 	background := canvas.NewRectangle(averageColor)
-	background.Resize(fyne.NewSize(300, 300))
+	background.SetMinSize(fyne.NewSize(300, 300))
+	background.Resize(fyne.NewSize(296, 296)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
+	background.CornerRadius = 20              // Définir les coins arrondis
 
 	// Nom de l'artiste en gras et plus gros
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
