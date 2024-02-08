@@ -61,7 +61,7 @@ func main() {
 			resultText := fmt.Sprintf("Artist found: %s\n\n", searchText)
 			searchResultsObjects = append(searchResultsObjects, widget.NewLabel(resultText))
 			for _, artist := range foundArtists {
-				card := createCard(artist)
+				card := createCardGeneralInfo(artist)
 				searchResultsObjects = append(searchResultsObjects, card)
 			}
 		} else {
@@ -80,7 +80,7 @@ func main() {
 	// Création du conteneur pour afficher les artistes
 	artistsContainer := container.NewHBox()
 	for _, artist := range artists {
-		card := createCard(artist)
+		card := createCardGeneralInfo(artist)
 		artistsContainer.Add(card)
 	}
 
@@ -131,6 +131,63 @@ func createCard(artist Artist) fyne.CanvasObject {
 			yearLabel,
 			layout.NewSpacer(),
 			debutLabel,
+		),
+		layout.NewSpacer(),
+		membersLabel,
+		layout.NewSpacer(),
+	)
+
+	// Définir la taille fixe pour le conteneur d'informations
+	infoContainer.Resize(fyne.NewSize(300, 180))
+
+	// Créer le conteneur pour la carte de l'artiste
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), image, infoContainer)
+	cardContent.Resize(fyne.NewSize(300, 300))
+
+	// Créer un rectangle pour le contour avec des coins arrondis
+	border := canvas.NewRectangle(color.Transparent) // Définir une couleur transparente pour le remplissage
+	border.SetMinSize(fyne.NewSize(300, 300))
+	border.Resize(fyne.NewSize(296, 296)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
+	border.StrokeColor = color.Black      // Définir la couleur de la bordure
+	border.StrokeWidth = 3                // Définir l'épaisseur de la bordure
+	border.CornerRadius = 20              // Définir les coins arrondis
+
+	// Ajouter le rectangle de contour à la carte
+	cardContent.AddObject(border)
+
+	return cardContent
+}
+
+func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
+	// Redimensionner l'image
+	image := canvas.NewImageFromFile(artist.Image)
+	image.FillMode = canvas.ImageFillContain
+	image.SetMinSize(fyne.NewSize(120, 120))
+	image.Resize(fyne.NewSize(120, 120))
+
+	// Nom de l'artiste en gras et plus gros
+	nameLabel := canvas.NewText(artist.Name, theme.TextColor())
+
+	// Date de début de l'artiste en plus petit
+	yearLabel := canvas.NewText(fmt.Sprintf(" %d", artist.YearStarted), theme.TextColor())
+
+	// Membres du groupe, s'il y en a, en plus petit
+	var membersText string
+	if len(artist.Members) == 1 {
+		membersText = "Solo Artist"
+	} else if len(artist.Members) > 0 {
+		membersText = "Members: " + strings.Join(artist.Members, ", ")
+	}
+	membersLabel := canvas.NewText(membersText, theme.TextColor())
+
+	// Créer le conteneur pour les informations sur l'artiste
+	infoContainer := container.New(layout.NewVBoxLayout(),
+		layout.NewSpacer(),
+		nameLabel,
+		layout.NewSpacer(),
+		container.NewHBox(
+			yearLabel,
+			layout.NewSpacer(),
 		),
 		layout.NewSpacer(),
 		membersLabel,
