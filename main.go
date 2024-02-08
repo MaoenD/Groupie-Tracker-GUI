@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -77,7 +78,7 @@ func main() {
 	}
 
 	// Création du conteneur pour afficher les artistes
-	artistsContainer := container.NewVBox()
+	artistsContainer := container.NewHBox()
 	for _, artist := range artists {
 		card := createCard(artist)
 		artistsContainer.Add(card)
@@ -88,7 +89,7 @@ func main() {
 		searchBar,
 		searchButton,
 		searchResults,
-		artistsContainer,
+		artistsContainer, // Utilisation du conteneur HBox pour afficher les cartes côte à côte
 	)
 
 	myWindow.SetContent(content)
@@ -97,45 +98,62 @@ func main() {
 }
 
 func createCard(artist Artist) fyne.CanvasObject {
+	// Redimensionner l'image
 	image := canvas.NewImageFromFile(artist.Image)
 	image.FillMode = canvas.ImageFillContain
-	image.SetMinSize(fyne.NewSize(100, 100))
-	image.Resize(fyne.NewSize(100, 100))
+	image.SetMinSize(fyne.NewSize(120, 120))
+	image.Resize(fyne.NewSize(120, 120))
 
-	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
-	debutLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("2006-01-02")))
-	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))
+	// Nom de l'artiste en gras et plus gros
+	nameLabel := canvas.NewText(artist.Name, theme.TextColor())
 
-	// Ajouter des espaces entre les éléments
-	spacer := layout.NewSpacer()
+	// Date de début de l'artiste en plus petit
+	yearLabel := canvas.NewText(fmt.Sprintf("Year Started: %d", artist.YearStarted), theme.TextColor())
 
-	content := container.NewVBox(
+	// Album de début de l'artiste
+	debutLabel := canvas.NewText(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("2006-01-02")), theme.TextColor())
+
+	// Membres du groupe, s'il y en a, en plus petit
+	var membersText string
+	if len(artist.Members) > 0 {
+		membersText = "Members: " + strings.Join(artist.Members, ", ")
+	} else {
+		membersText = "Solo Artist"
+	}
+	membersLabel := canvas.NewText(membersText, theme.TextColor())
+
+	// Créer le conteneur pour les informations sur l'artiste
+	infoContainer := container.New(layout.NewVBoxLayout(),
 		layout.NewSpacer(),
 		nameLabel,
-		spacer,
-		yearLabel,
-		spacer,
-		debutLabel,
-		spacer,
+		layout.NewSpacer(),
+		container.NewHBox(
+			yearLabel,
+			layout.NewSpacer(),
+			debutLabel,
+		),
+		layout.NewSpacer(),
 		membersLabel,
 		layout.NewSpacer(),
 	)
-	content.Resize(fyne.NewSize(200, 200))
 
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), image, content)
-	cardContent.Resize(fyne.NewSize(200, 200))
+	// Définir la taille fixe pour le conteneur d'informations
+	infoContainer.Resize(fyne.NewSize(300, 180))
+
+	// Créer le conteneur pour la carte de l'artiste
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), image, infoContainer)
+	cardContent.Resize(fyne.NewSize(300, 300))
 
 	// Créer un rectangle pour le contour avec des coins arrondis
 	border := canvas.NewRectangle(color.Transparent) // Définir une couleur transparente pour le remplissage
-	border.SetMinSize(fyne.NewSize(200, 200))
-	border.Resize(fyne.NewSize(196, 196)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
+	border.SetMinSize(fyne.NewSize(300, 300))
+	border.Resize(fyne.NewSize(296, 296)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
 	border.StrokeColor = color.Black      // Définir la couleur de la bordure
 	border.StrokeWidth = 3                // Définir l'épaisseur de la bordure
 	border.CornerRadius = 20              // Définir les coins arrondis
 
 	// Ajouter le rectangle de contour à la carte
-	cardContent.Add(border)
+	cardContent.AddObject(border)
 
 	return cardContent
 }
