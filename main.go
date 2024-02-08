@@ -169,7 +169,13 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	nameLabel := canvas.NewText(artist.Name, theme.TextColor())
 
 	// Date de début de l'artiste en plus petit
-	yearLabel := canvas.NewText(fmt.Sprintf(" %d", artist.YearStarted), theme.TextColor())
+	yearLabel := canvas.NewText(fmt.Sprintf("%d", artist.YearStarted), theme.TextColor())
+
+	// Créer un conteneur HBox pour afficher nameLabel et yearLabel sur la même ligne
+	labelsContainer := container.NewHBox(
+		nameLabel,
+		yearLabel,
+	)
 
 	// Membres du groupe, s'il y en a, en plus petit
 	var membersText string
@@ -183,12 +189,7 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	// Créer le conteneur pour les informations sur l'artiste
 	infoContainer := container.New(layout.NewVBoxLayout(),
 		layout.NewSpacer(),
-		nameLabel,
-		layout.NewSpacer(),
-		container.NewHBox(
-			yearLabel,
-			layout.NewSpacer(),
-		),
+		labelsContainer, // Placer les labels sur la même ligne
 		layout.NewSpacer(),
 		membersLabel,
 		layout.NewSpacer(),
