@@ -29,7 +29,7 @@ func main() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Menu - Groupie Tracker")
 
-	// Exemple de données pour les artistes
+	// Définir les données des artistes
 	artists := []Artist{
 		{Name: "Michael Jackson", Image: "public/michaeljackson.jpg", YearStarted: 1964, DebutAlbum: time.Date(1972, time.November, 13, 0, 0, 0, 0, time.UTC), Members: []string{"Michael Jackson"}},
 		{Name: "Queen", Image: "public/queen.jpg", YearStarted: 1970, DebutAlbum: time.Date(1973, time.July, 13, 0, 0, 0, 0, time.UTC), Members: []string{"Freddie Mercury", "Brian May", "Roger Taylor", "John Deacon"}},
@@ -109,11 +109,15 @@ func main() {
 	scrollContainer := container.NewVScroll(artistsContainer)
 	scrollContainer.SetMinSize(fyne.NewSize(1080, 720)) // Taille minimale pour activer le défilement
 
+	// Création du bloc de contenu
+	blockContent := createBlockContent()
+
 	// Création du conteneur principal avec la couleur de fond spécifiée
 	content := container.NewVBox(
 		searchBar,
 		searchButton,
 		searchResults,
+		blockContent,    // Ajouter le bloc de contenu
 		scrollContainer, // Utilisation du conteneur de défilement pour les artistes
 	)
 
@@ -138,7 +142,7 @@ func main() {
 
 func createBlockContent() fyne.CanvasObject {
 	// Chemin de l'image
-	imagePath := "public/world_map.jpg"
+	imagePath := "public/world_map1.jpg"
 
 	// Charger l'image
 	image := canvas.NewImageFromFile(imagePath)
@@ -149,8 +153,8 @@ func createBlockContent() fyne.CanvasObject {
 		return nil
 	}
 
-	// Redimensionner l'image à la taille spécifiée
-	image.Resize(fyne.NewSize(1000, 120))
+	// Définir le mode de remplissage à "Contain" pour le recadrage
+	image.FillMode = canvas.ImageFillStretch
 
 	// Créer le texte
 	title := widget.NewLabel("Geolocation feature")
@@ -163,28 +167,13 @@ func createBlockContent() fyne.CanvasObject {
 		description,
 	)
 
-	// Créer un conteneur pour organiser l'image et le texte côte à côte
-	content := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+	// Créer un conteneur pour organiser l'image et le texte
+	blockContent := fyne.NewContainerWithLayout(layout.NewBorderLayout(nil, nil, nil, nil),
 		image,
 		textContainer,
 	)
 
-	// Créer un conteneur pour la carte de contenu avec un rectangle de contour arrondi
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), content)
-	cardContent.Resize(fyne.NewSize(1000, 120))
-
-	// Créer un rectangle de contour avec des coins arrondis
-	border := canvas.NewRectangle(color.Transparent) // Définir une couleur transparente pour le remplissage
-	border.SetMinSize(fyne.NewSize(1000, 120))
-	border.Resize(fyne.NewSize(996, 116)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
-	border.StrokeColor = color.Black      // Définir la couleur de la bordure
-	border.StrokeWidth = 3                // Définir l'épaisseur de la bordure
-	border.CornerRadius = 20              // Définir les coins arrondis
-
-	// Ajouter le rectangle de contour à la carte de contenu
-	cardContent.AddObject(border)
-
-	return cardContent
+	return blockContent
 }
 
 func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
