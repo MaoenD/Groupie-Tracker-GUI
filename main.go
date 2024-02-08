@@ -23,24 +23,16 @@ type Artist struct {
 	Members     []string
 }
 
-// Venue struct to hold information about concert venues
-type Venue struct {
-	Name     string
-	Location string
-	Capacity int
-}
-
-// ConcertDate struct to hold information about concert dates
-type ConcertDate struct {
-	Date    time.Time
-	IsPast  bool // Indicates whether the concert date is in the past or future
-	Artists []Artist
-	Venue   Venue
-}
-
 func main() {
 	myApp := app.New()
-	myWindow := myApp.NewWindow("Groupie Tracker")
+	myWindow := myApp.NewWindow("Menu - Groupie Tracker")
+
+	// Exemple de données pour les artistes
+	artists := []Artist{
+		{Name: "Michael Jackson", Image: "public/michaeljackson.jpg", YearStarted: 1964, DebutAlbum: time.Date(1972, time.November, 13, 0, 0, 0, 0, time.UTC), Members: []string{"Michael Jackson"}},
+		{Name: "Queen", Image: "public/queen.png", YearStarted: 1970, DebutAlbum: time.Date(1973, time.July, 13, 0, 0, 0, 0, time.UTC), Members: []string{"Freddie Mercury", "Brian May", "Roger Taylor", "John Deacon"}},
+		{Name: "Pink Floyd", Image: "public/pinkfloyd.jpeg", YearStarted: 1965, DebutAlbum: time.Date(1967, time.August, 5, 0, 0, 0, 0, time.UTC), Members: []string{"Syd Barrett", "Roger Waters", "Richard Wright", "Nick Mason"}},
+	}
 
 	// Champ de recherche
 	searchBar := widget.NewEntry()
@@ -53,13 +45,6 @@ func main() {
 	searchButton := widget.NewButton("Search", func() {
 		// Récupérer le texte de la recherche
 		searchText := searchBar.Text
-
-		// Exemple de données pour les artistes, les lieux et les dates de concert
-		// Vous pouvez les remplacer par vos propres données
-		artists := []Artist{
-			{Name: "Michael Jackson", Image: "michael_jackson.jpg", YearStarted: 1964, DebutAlbum: time.Date(1972, time.November, 13, 0, 0, 0, 0, time.UTC), Members: []string{"Michael Jackson"}},
-			{Name: "Queen", Image: "public/queen.png", YearStarted: 1970, DebutAlbum: time.Date(1973, time.July, 13, 0, 0, 0, 0, time.UTC), Members: []string{"Freddie Mercury", "Brian May", "Roger Taylor", "John Deacon"}},
-		}
 
 		// Recherche d'artistes correspondants
 		var foundArtists []Artist
@@ -91,11 +76,19 @@ func main() {
 		searchButton.OnTapped()
 	}
 
+	// Création du conteneur pour afficher les artistes
+	artistsContainer := container.NewVBox()
+	for _, artist := range artists {
+		card := createCard(artist)
+		artistsContainer.Add(card)
+	}
+
 	// Disposition widget
 	content := container.NewVBox(
 		searchBar,
 		searchButton,
 		searchResults,
+		artistsContainer,
 	)
 
 	myWindow.SetContent(content)
