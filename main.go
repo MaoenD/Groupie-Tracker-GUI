@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"image/color"
+	"os"
 	"strings"
 	"time"
 
@@ -171,15 +173,21 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	image.SetMinSize(fyne.NewSize(120, 120))
 	image.Resize(fyne.NewSize(120, 120))
 
+	// Obtenir la couleur moyenne de l'image
+	averageColor := getAverageColor(artist.Image)
+
+	// Créer un rectangle coloré pour l'arrière-plan de la carte
+	background := canvas.NewRectangle(averageColor)
+	background.Resize(fyne.NewSize(300, 300))
+
 	// Nom de l'artiste en gras et plus gros
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	nameLabel.Wrapping = fyne.TextWrapWord // Activer le wrapping du texte
 
 	// Date de début de l'artiste en plus petit
-	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
+	yearLabel := widget.NewLabel(fmt.Sprintf("%d", artist.YearStarted))
 
-	// Créer un conteneur VBox pour afficher les labels
-	labelsContainer := container.NewVBox(
+	// Créer un conteneur HBox pour afficher les labels avec un espace entre eux
+	labelsContainer := container.NewHBox(
 		nameLabel,
 		yearLabel,
 	)
@@ -189,25 +197,25 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	if len(artist.Members) == 1 {
 		membersText = "Solo Artist"
 	} else if len(artist.Members) > 0 {
-		membersText = "Members: " + strings.Join(artist.Members, ", ")
+		membersText = "Members:\n " + strings.Join(artist.Members, ", ")
 	}
 	membersLabel := widget.NewLabel(membersText)
 	membersLabel.Wrapping = fyne.TextWrapWord // Activer le wrapping du texte
 
 	// Créer le conteneur pour les informations sur l'artiste
 	infoContainer := container.New(layout.NewVBoxLayout(),
-		layout.NewSpacer(),
-		labelsContainer, // Placer les labels sur la même ligne
-		layout.NewSpacer(),
-		membersLabel,
-		layout.NewSpacer(),
+		layout.NewSpacer(), // Ajout d'un espace vertical
+		image,
+		labelsContainer,    // Placer les labels sur la même ligne avec un espace entre eux
+		membersLabel,       // Afficher les membres du groupe
+		layout.NewSpacer(), // Ajout d'un petit espace vertical
 	)
 
 	// Définir la taille fixe pour le conteneur d'informations
 	infoContainer.Resize(fyne.NewSize(300, 180))
 
 	// Créer le conteneur pour la carte de l'artiste
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), image, infoContainer)
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background, infoContainer)
 	cardContent.Resize(fyne.NewSize(300, 300))
 
 	// Créer un rectangle pour le contour avec des coins arrondis
@@ -222,4 +230,59 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	cardContent.AddObject(border)
 
 	return cardContent
+}
+
+// Fonction pour obtenir la couleur moyenne d'une image
+func getAverageColor(imagePath string) color.Color {
+	// Ouvrir le fichier image
+	file, err := os.Open(imagePath)
+	if err != nil {
+		fmt.Println("Erreur lors de l'ouverture du fichier:", err)
+		return color.Black // Retourner noir en cas d'erreur
+	}
+	defer file.Close()
+
+	// Décoder l'image
+	img, _, err := image.Decode(file)
+	if err != nil {
+		fmt.Println("Erreur lors du décodage de l'image:", err)
+		return color.Black // Retourner noir en cas d'erreur
+	}
+
+	// Initialiser les variables pour stocker la somme des composantes de couleur
+	var totalRed, totalGreen, totalBlue uint32
+	totalPixels := 0
+
+	// Parcourir tous les pixels de l'image
+	bounds := img.Bounds()
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			// Obtenir la couleur du pixel
+			pixelColor := img.At(x, y)
+			r, g, b, _ := pixelColor.RGBA()
+
+			// Ajouter les composantes de couleur à la somme totale
+			totalRed += r
+			totalGreen += g
+			totalBlue += b
+
+			// Incrémenter le nombre total de pixels
+			totalPixels++
+		}
+	}
+
+	// Calculer la moyenne des composantes de couleur en divisant par le nombre total de pixels
+	averageRed := totalRed / uint32(totalPixels)
+	averageGreen := totalGreen / uint32(totalPixels)
+	averageBlue := totalBlue / uint32(totalPixels)
+
+	// Créer et retourner la couleur moyenne
+	averageColor := color.RGBA{
+		R: uint8(averageRed >> 8),
+		G: uint8(averageGreen >> 8),
+		B: uint8(averageBlue >> 8),
+		A: 130, // Opacité
+	}
+
+	return averageColor
 }
