@@ -1,6 +1,6 @@
 package main
 
-import (
+import ( //importation des bibliotheques nécessaires
 	"fmt"
 	"image"
 	"image/color"
@@ -16,13 +16,12 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-type Concert struct {
+type Concert struct { // Définition de la struct "Concert"
 	Date     time.Time
 	Location string
 }
 
-// Artist struct to hold information about artists or groups
-type Artist struct {
+type Artist struct { // Définition de la struct "Artist"
 	Name         string
 	Image        string
 	YearStarted  int
@@ -32,12 +31,11 @@ type Artist struct {
 	NextConcerts []Concert
 }
 
-func main() {
-	myApp := app.New()
-	myWindow := myApp.NewWindow("Menu - Groupie Tracker")
+func main() { // Fonction Principale, lancement de l'application
+	myApp := app.New()                                    // Création de l'application
+	myWindow := myApp.NewWindow("Menu - Groupie Tracker") // Création d'une fenêtre et nommage
 
-	// Définir les données des artistes
-	artists := []Artist{
+	artists := []Artist{ // Définir les données des artistes
 		{Name: "Michael Jackson", Image: "public/michaeljackson.jpg", YearStarted: 1964, DebutAlbum: time.Date(1972, time.November, 13, 0, 0, 0, 0, time.UTC), Members: []string{"Michael Jackson"}, LastConcert: Concert{Date: time.Date(2009, time.June, 24, 0, 0, 0, 0, time.UTC), Location: "O2 Arena, London, UK"}, NextConcerts: []Concert{{Date: time.Date(2024, time.April, 15, 0, 0, 0, 0, time.UTC), Location: "Madison Square Garden, New York, USA"}, {Date: time.Date(2024, time.July, 10, 0, 0, 0, 0, time.UTC), Location: "Stade de France, Paris, France"}}},
 		{Name: "Queen", Image: "public/queen.jpg", YearStarted: 1970, DebutAlbum: time.Date(1973, time.July, 13, 0, 0, 0, 0, time.UTC), Members: []string{"Freddie Mercury", "Brian May", "Roger Taylor", "John Deacon"}, LastConcert: Concert{Date: time.Date(2022, time.December, 15, 0, 0, 0, 0, time.UTC), Location: "The O2 Arena, London, UK"}, NextConcerts: []Concert{{Date: time.Date(2024, time.May, 20, 0, 0, 0, 0, time.UTC), Location: "Wembley Stadium, London, UK"}, {Date: time.Date(2024, time.September, 5, 0, 0, 0, 0, time.UTC), Location: "Los Angeles Memorial Coliseum, Los Angeles, USA"}}},
 		{Name: "Pink Floyd", Image: "public/pinkfloyd.jpeg", YearStarted: 1965, DebutAlbum: time.Date(1967, time.August, 5, 0, 0, 0, 0, time.UTC), Members: []string{"Syd Barrett", "Roger Waters", "Richard Wright", "Nick Mason"}, LastConcert: Concert{Date: time.Date(1994, time.October, 29, 0, 0, 0, 0, time.UTC), Location: "Earls Court Exhibition Centre, London, UK"}, NextConcerts: []Concert{{Date: time.Date(2024, time.October, 15, 0, 0, 0, 0, time.UTC), Location: "Royal Albert Hall, London, UK"}, {Date: time.Date(2024, time.November, 20, 0, 0, 0, 0, time.UTC), Location: "Madison Square Garden, New York, USA"}}},
@@ -53,129 +51,103 @@ func main() {
 		{Name: "Metallica", Image: "public/metallica.jpg", YearStarted: 1981, DebutAlbum: time.Date(1983, time.July, 25, 0, 0, 0, 0, time.UTC), Members: []string{"James Hetfield", "Lars Ulrich", "Kirk Hammett", "Robert Trujillo"}, LastConcert: Concert{Date: time.Date(2022, time.December, 19, 0, 0, 0, 0, time.UTC), Location: "T-Mobile Arena, Las Vegas, USA"}, NextConcerts: []Concert{{Date: time.Date(2024, time.April, 30, 0, 0, 0, 0, time.UTC), Location: "Estadio Monumental, Buenos Aires, Argentina"}, {Date: time.Date(2024, time.July, 7, 0, 0, 0, 0, time.UTC), Location: "Parque dos Atletas, Rio de Janeiro, Brazil"}}},
 	}
 
-	// Champ de recherche
-	searchBar := widget.NewEntry()
-	searchBar.SetPlaceHolder("Search Artists...")
+	searchBar := widget.NewEntry()                // Création d'un champs de recherche
+	searchBar.SetPlaceHolder("Search Artists...") // Définir un placeholder
 
-	// Zone d'affichage des résultats de recherches
-	searchResults := container.NewVBox()
+	searchResults := container.NewVBox() // Création de la zone d'affichage des résultats de recherches
 
-	// Bouton de recherche
-	searchButton := widget.NewButton("Search", func() {
-		// Récupérer le texte de la recherche
-		searchText := searchBar.Text
+	searchButton := widget.NewButton("Search", func() { // Création d'un bouton de recherche
+		searchText := searchBar.Text // Récupérer le texte de la recherche
 
-		// Recherche d'artistes correspondants
-		var foundArtists []Artist
-		for _, artist := range artists {
-			if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(searchText)) {
-				foundArtists = append(foundArtists, artist)
+		var foundArtists []Artist        // Recherche d'artistes correspondants
+		for _, artist := range artists { // Parcours la liste avec tous les artists
+			if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(searchText)) { //Vérification de résultat avec l'entrée
+				foundArtists = append(foundArtists, artist) //L'ajouté à un tableaux
 			}
 		}
 
-		// Afficher les résultats
-		searchResultsObjects := make([]fyne.CanvasObject, 0)
-		if len(foundArtists) > 0 {
-			resultText := fmt.Sprintf("Artist found: %s\n\n", searchText)
-			searchResultsObjects = append(searchResultsObjects, widget.NewLabel(resultText))
-			for _, artist := range foundArtists {
-				card := createCardAllInfo(artist)
-				searchResultsObjects = append(searchResultsObjects, card)
+		searchResultsObjects := make([]fyne.CanvasObject, 0) // Afficher les résultats
+		if len(foundArtists) > 0 {                           // Si le tableaux n'est pas vide
+			resultText := fmt.Sprintf("Artist found for: %s\n\n", searchText)                //affiche l'entrée de recherche
+			searchResultsObjects = append(searchResultsObjects, widget.NewLabel(resultText)) // Ajoute au Canva afin de l'affiché
+			for _, artist := range foundArtists {                                            // Affichage des informations pour les tous les artistes dans le tableau
+				card := createCardAllInfo(artist)                         // Création de la card selon l'artiste trouvé
+				searchResultsObjects = append(searchResultsObjects, card) // Ajoute au Canva afin de l'affiché
 			}
-		} else {
-			searchResultsObjects = append(searchResultsObjects, widget.NewLabel("No artist found: "+searchText))
+		} else { // Si le tableaux est pas vide (aucun résultat trouvé)
+			searchResultsObjects = append(searchResultsObjects, widget.NewLabel("No artist found: "+searchText)) // Ajoute au Canva afin de l'affiché
 		}
 
-		searchResults.Objects = searchResultsObjects
-		searchResults.Refresh()
+		searchResults.Objects = searchResultsObjects //COMPLETE ICI
+		searchResults.Refresh()                      //permet de refresh selon la recherche
 	})
 
-	// Ajouter l'écouteur d'événements clavier au champ de recherche
-	searchBar.OnSubmitted = func(_ string) {
-		searchButton.OnTapped()
+	searchBar.OnSubmitted = func(_ string) { // Ajouter l'écouteur d'événements clavier au champ de recherche
+		searchButton.OnTapped() //COMPLETE ICI
 	}
 
-	// Création du conteneur pour afficher les artistes
-	artistsContainer := container.NewVBox()
+	artistsContainer := container.NewVBox() // Création du conteneur pour afficher les artistes
 
-	// Ajouter les cartes des artistes par groupes de 3 dans des conteneurs de grille
-	for i := 0; i < len(artists); i += 3 {
-		// Créer un nouveau conteneur de grille pour chaque ligne d'artistes
-		rowContainer := container.NewGridWithColumns(3)
-		// Ajouter les trois artistes de cette ligne dans la grille
-		for j := i; j < i+3 && j < len(artists); j++ {
-			card := createCardGeneralInfo(artists[j])
-			rowContainer.Add(card)
+	for i := 0; i < len(artists); i += 3 { // Ajouter les cartes des artistes par groupes de 3 dans des conteneurs de grille
+		rowContainer := container.NewGridWithColumns(3) // Créer un nouveau conteneur de grille pour chaque ligne d'artistes
+		for j := i; j < i+3 && j < len(artists); j++ {  // Ajouter les trois artistes de cette ligne dans la grille
+			card := createCardGeneralInfo(artists[j]) // Création des cards
+			rowContainer.Add(card)                    //Ajouter les cards à la colonne
 		}
-		// Ajouter un espacement après chaque ligne
-		artistsContainer.Add(rowContainer)
-		artistsContainer.Add(layout.NewSpacer()) // Ajouter un espacement
+
+		/* artistsContainer.Add(layout.NewSpacer()) // Ajouter un espacement */
+		artistsContainer.Add(rowContainer) // Ajoute des cards créer dans le container
 	}
 
-	// Créer un conteneur de défilement pour le conteneur principal
-	scrollContainer := container.NewVScroll(artistsContainer)
-	scrollContainer.SetMinSize(fyne.NewSize(1080, 720)) // Taille minimale pour activer le défilement
+	scrollContainer := container.NewVScroll(artistsContainer) // Créer un conteneur de défilement pour le conteneur principal
+	scrollContainer.SetMinSize(fyne.NewSize(1080, 720))       // Taille minimale pour activer le défilement
 
-	// Création du bloc de contenu
-	blockContent := createBlockContent()
+	blockContent := mapFeature() // Création du bloc de contenu //MAP FEATURE
 
-	// Création du conteneur principal avec la couleur de fond spécifiée
-	content := container.NewVBox(
-		searchBar,
-		searchButton,
-		searchResults,
-		blockContent,    // Ajouter le bloc de contenu
+	content := container.NewVBox( // Création du conteneur principal avec la couleur de fond spécifiée
+		searchBar,       // Ajout de la search bar
+		searchButton,    // Ajout du boutton
+		searchResults,   // Ajout de les résultats (si trouvés)
+		blockContent,    // Ajouter le bloc de contenu //MAP FEATURE
 		scrollContainer, // Utilisation du conteneur de défilement pour les artistes
 	)
 
-	// Centrer les cartes dans la fenêtre
-	centeredContent := container.New(layout.NewCenterLayout(), content)
+	centeredContent := container.New(layout.NewCenterLayout(), content) // Centrer les cartes dans la fenêtre
 
-	// Créer un rectangle pour représenter le fond coloré
-	background := canvas.NewRectangle(color.NRGBA{R: 0x5C, G: 0x64, B: 0x73, A: 0xFF})
-	background.Resize(fyne.NewSize(1080, 720)) // Taille pour remplir toute la fenêtre
+	background := canvas.NewRectangle(color.NRGBA{R: 0x5C, G: 0x64, B: 0x73, A: 0xFF}) // Création d'un rectangle pour le background
+	background.Resize(fyne.NewSize(1080, 720))                                         // Taille pour remplir toute la fenêtre
 
-	// Créer un conteneur pour contenir le fond coloré
-	backgroundContainer := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background)
+	backgroundContainer := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background) // Créer un conteneur pour contenir le fond coloré
 
-	// Ajouter le contenu principal au conteneur de fond
-	backgroundContainer.Add(centeredContent)
+	backgroundContainer.Add(centeredContent) // Ajouter le contenu principal au conteneur de fond
 
-	// Afficher la fenêtre
-	myWindow.SetContent(backgroundContainer)
+	myWindow.SetContent(backgroundContainer) // Afficher la fenêtre
 	myWindow.Resize(fyne.NewSize(1080, 720)) // ajustement size
-	myWindow.ShowAndRun()
+	myWindow.ShowAndRun()                    //run la fenêtre
 }
 
-func createBlockContent() fyne.CanvasObject {
-	// Chemin de l'image
-	imagePath := "public/world_map1.jpg"
+func mapFeature() fyne.CanvasObject {
+	imagePath := "public/world_map1.jpg" // Chemin de l'image
 
-	// Charger l'image
-	image := canvas.NewImageFromFile(imagePath)
+	image := canvas.NewImageFromFile(imagePath) // Charger l'image
 
-	// Vérifier les erreurs lors du chargement de l'image
-	if image == nil {
+	if image == nil { // Gestion d'erreurs
 		fmt.Println("Impossible de charger l'image:", imagePath)
 		return nil
 	}
 
-	// Définir le mode de remplissage à "Contain" pour le recadrage
-	image.FillMode = canvas.ImageFillStretch
+	image.FillMode = canvas.ImageFillStretch // Définir le mode de remplissage à "Contain" pour le recadrage
 
-	// Créer le texte
-	title := widget.NewLabel("Geolocation feature")
-	description := widget.NewLabel("Find out where and when your favorite artists will be performing around the globe.")
-	description.Wrapping = fyne.TextWrapWord // Activer le wrapping du texte
+	title := widget.NewLabel("Geolocation feature")                                                                      // Créer du titre
+	description := widget.NewLabel("Find out where and when your favorite artists will be performing around the globe.") // Créer de la description
+	/* description.Wrapping = fyne.TextWrapWord   */ // Activer le wrapping du texte
 
-	// Créer un conteneur pour organiser le texte
-	textContainer := container.New(layout.NewVBoxLayout(),
+	textContainer := container.New(layout.NewVBoxLayout(), // Création d'un conteneur pour le texte
 		title,
 		description,
 	)
 
-	// Créer un conteneur pour organiser l'image et le texte
-	blockContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil),
+	blockContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), // Créer un conteneur pour organiser l'image et le texte
 		image,
 		textContainer,
 	)
@@ -184,132 +156,111 @@ func createBlockContent() fyne.CanvasObject {
 }
 
 func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
-	// Redimensionner l'image
-	image := canvas.NewImageFromFile(artist.Image)
-	image.FillMode = canvas.ImageFillContain
-	image.SetMinSize(fyne.NewSize(120, 120))
-	image.Resize(fyne.NewSize(120, 120))
+	image := canvas.NewImageFromFile(artist.Image) // Redimensionner l'image
+	image.FillMode = canvas.ImageFillContain       // Gestion du fill image
+	image.SetMinSize(fyne.NewSize(120, 120))       //Définir la taille minimum de l'image
+	image.Resize(fyne.NewSize(120, 120))           //Définir la nouvelle image de l'image
 
-	// Obtenir la couleur moyenne de l'image
-	averageColor := getAverageColor(artist.Image)
+	averageColor := getAverageColor(artist.Image) // Obtenir la couleur moyenne de l'image
 
-	// Créer un rectangle coloré pour l'arrière-plan de la carte
-	background := canvas.NewRectangle(averageColor)
-	background.SetMinSize(fyne.NewSize(300, 300))
-	background.Resize(fyne.NewSize(296, 296)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
-	background.CornerRadius = 20              // Définir les coins arrondis
+	background := canvas.NewRectangle(averageColor) // Création d'un rectangle coloré pour l'arrière-plan de la card
+	background.SetMinSize(fyne.NewSize(300, 300))   // Définir la taille minimum du bakcground
+	background.Resize(fyne.NewSize(296, 296))       // Redimensionner pour inclure les coin
+	background.CornerRadius = 20                    // Définir les coins arrondis
 
-	// Nom de l'artiste en gras et plus gros
-	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}) // Nom de l'artiste en gras et plus gros
 
-	// Date de début de l'artiste en plus petit
-	yearLabel := widget.NewLabel(fmt.Sprintf("%d", artist.YearStarted))
+	yearLabel := widget.NewLabel(fmt.Sprintf("%d", artist.YearStarted)) // Date de début de l'artiste en plus petit
 
-	// Créer un conteneur HBox pour afficher les labels avec un espace entre eux
-	labelsContainer := container.NewHBox(
+	labelsContainer := container.NewHBox( // Créer un conteneur HBox pour afficher les labels avec un espace entre eux
 		nameLabel,
 		yearLabel,
 	)
 
-	// Membres du groupe, s'il y en a, en plus petit
-	var membersText string
-	if len(artist.Members) == 1 {
+	var membersText string        // Gestion des membres du groupe
+	if len(artist.Members) == 1 { // Contion du nombre de membres
 		membersText = "Solo Artist"
-	} else if len(artist.Members) > 0 {
+	} else if len(artist.Members) > 0 { // Contion du nombre de membres
 		membersText = "Members:\n " + strings.Join(artist.Members, ", ")
 	}
-	membersLabel := widget.NewLabel(membersText)
-	membersLabel.Wrapping = fyne.TextWrapWord // Activer le wrapping du texte
+	membersLabel := widget.NewLabel(membersText) // EXPLIQUE ICI
+	membersLabel.Wrapping = fyne.TextWrapWord    // Activer le wrapping du texte
 
-	// Créer le conteneur pour les informations sur l'artiste
-	infoContainer := container.New(layout.NewVBoxLayout(),
+	infoContainer := container.New(layout.NewVBoxLayout(), // Créer le conteneur pour les informations sur l'artiste
 		layout.NewSpacer(), // Ajout d'un espace vertical
-		image,
-		labelsContainer,    // Placer les labels sur la même ligne avec un espace entre eux
+		image,              // Ajout de l'image
+		labelsContainer,    // Ajout titre et date
 		membersLabel,       // Afficher les membres du groupe
 		layout.NewSpacer(), // Ajout d'un petit espace vertical
 	)
 
-	// Définir la taille fixe pour le conteneur d'informations
-	infoContainer.Resize(fyne.NewSize(300, 180))
+	infoContainer.Resize(fyne.NewSize(300, 180)) // Définir la taille fixe pour le conteneur d'informations
 
-	// Créer le conteneur pour la carte de l'artiste
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background, infoContainer)
-	cardContent.Resize(fyne.NewSize(300, 300))
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background, infoContainer) // Créer le conteneur pour la card de l'artiste
+	cardContent.Resize(fyne.NewSize(300, 300))                                                          //Définir la taille minimum de la card                                               //
 
-	// Créer un rectangle pour le contour avec des coins arrondis
 	border := canvas.NewRectangle(color.Transparent) // Définir une couleur transparente pour le remplissage
-	border.SetMinSize(fyne.NewSize(300, 300))
-	border.Resize(fyne.NewSize(296, 296)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
-	border.StrokeColor = color.Black      // Définir la couleur de la bordure
-	border.StrokeWidth = 3                // Définir l'épaisseur de la bordure
-	border.CornerRadius = 20              // Définir les coins arrondis
+	border.SetMinSize(fyne.NewSize(300, 300))        //Définir la taille minimum de la bordure
+	border.Resize(fyne.NewSize(296, 296))            // Redimensionner pour inclure les coin
+	border.StrokeColor = color.Black                 // Définir la couleur de la bordure
+	border.StrokeWidth = 3                           // Définir l'épaisseur de la bordure
+	border.CornerRadius = 20                         // Définir les coins
 
-	// Ajouter le rectangle de contour à la carte
-	cardContent.Add(border)
+	cardContent.Add(border) // Ajouter le rectangle de contour à la carte
 
 	return cardContent
 }
 
 func createCardAllInfo(artist Artist) fyne.CanvasObject {
-	// Redimensionner l'image
-	image := canvas.NewImageFromFile(artist.Image)
-	image.FillMode = canvas.ImageFillContain
-	image.SetMinSize(fyne.NewSize(120, 120))
-	image.Resize(fyne.NewSize(120, 120))
+	image := canvas.NewImageFromFile(artist.Image) // Redimensionner l'image dans un canva
+	image.FillMode = canvas.ImageFillContain       // Définir le Fill image
+	image.SetMinSize(fyne.NewSize(120, 120))       // Définir la taille minimum de l'image
+	image.Resize(fyne.NewSize(120, 120))           // Définir la nouvelle taille
 
-	// Obtenir la couleur moyenne de l'image
-	averageColor := getAverageColor(artist.Image)
+	averageColor := getAverageColor(artist.Image) // Obtenir la couleur moyenne de l'image
 
-	// Créer un rectangle coloré pour l'arrière-plan de la carte
-	background := canvas.NewRectangle(averageColor)
-	background.SetMinSize(fyne.NewSize(300, 300))
-	background.Resize(fyne.NewSize(296, 296)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
-	background.CornerRadius = 20              // Définir les coins arrondis
+	background := canvas.NewRectangle(averageColor) // Création d'un rectangle coloré pour l'arrière-plan de la card
+	background.SetMinSize(fyne.NewSize(300, 300))   // Définir la taille minimum du bakcground
+	background.Resize(fyne.NewSize(296, 296))       // Redimensionner pour inclure les coin
+	background.CornerRadius = 20                    // Définir les coins arrondis
 
 	// Créer des labels pour afficher les informations sur l'artiste
-	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
-	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("02-Jan-2006")))
-	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))
-	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Date.Format("02-Jan-2006"), artist.LastConcert.Location))
-
-	// Créer un label pour afficher le prochain concert
-	nextConcertLabel := widget.NewLabel("Next Concert:")
-	if len(artist.NextConcerts) > 0 {
-		nextConcertLabel.Text += fmt.Sprintf(" %s - %s", artist.NextConcerts[0].Date.Format("02-Jan-2006"), artist.NextConcerts[0].Location)
+	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})                                                 // Affichage du nom
+	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))                                                                     // Affichage de l'année de commencement
+	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("02-Jan-2006")))                                           // Affichage de la date de l'album
+	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))                                                       // Affichage des noms des artistes
+	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Date.Format("02-Jan-2006"), artist.LastConcert.Location)) // Affichage de la date du dernier concert
+	nextConcertLabel := widget.NewLabel("Next Concert:")                                                                                                  // Affichage de la date du prochain concert
+	if len(artist.NextConcerts) > 0 {                                                                                                                     // Condtion pour afficher les dates
+		nextConcertLabel.Text += fmt.Sprintf(" %s - %s", artist.NextConcerts[0].Date.Format("02-Jan-2006"), artist.NextConcerts[0].Location) // Affichage des dates et lieux
 	} else {
-		nextConcertLabel.Text += " No upcoming concerts"
+		nextConcertLabel.Text += " No upcoming concerts" // Affichage si aucun événeement
 	}
 
-	// Créer un conteneur VBox pour organiser les labels verticalement
-	infoContainer := container.NewVBox(
-		image,
-		nameLabel,
-		yearLabel,
-		debutAlbumLabel,
-		membersLabel,
-		lastConcertLabel,
+	infoContainer := container.NewVBox( // Créer un conteneur VBox pour organiser les labels verticalement
+		image,            // Ajout de l'image
+		nameLabel,        // Ajout du nom
+		yearLabel,        // Ajout de l'année de commencement
+		debutAlbumLabel,  // AJout de la date de l'album
+		membersLabel,     // Ajout des noms des artites
+		lastConcertLabel, // AJout de la date du dernier concert
 		nextConcertLabel, // Ajout du label du prochain concert
 	)
 
-	// Définir la taille fixe pour le conteneur d'informations
-	infoContainer.Resize(fyne.NewSize(300, 200))
+	infoContainer.Resize(fyne.NewSize(300, 200)) // Définir la taille fixe pour le conteneur d'informations
 
-	// Créer le conteneur pour la carte de l'artiste
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background, infoContainer)
-	cardContent.Resize(fyne.NewSize(300, 300))
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background, infoContainer) // Créer le conteneur pour la carte de l'artiste
+	cardContent.Resize(fyne.NewSize(300, 300))                                                          // Redimensionner le conteneur
 
 	// Créer un rectangle pour le contour avec des coins arrondis
 	border := canvas.NewRectangle(color.Transparent) // Définir une couleur transparente pour le remplissage
-	border.SetMinSize(fyne.NewSize(300, 300))
-	border.Resize(fyne.NewSize(296, 296)) // Redimensionner légèrement la bordure pour inclure les coins arrondis
-	border.StrokeColor = color.Black      // Définir la couleur de la bordure
-	border.StrokeWidth = 3                // Définir l'épaisseur de la bordure
-	border.CornerRadius = 20              // Définir les coins arrondis
+	border.SetMinSize(fyne.NewSize(300, 300))        // Définir la taille minimum
+	border.Resize(fyne.NewSize(296, 296))            // Redimensionner légèrement la bordure pour inclure les coins arrondis
+	border.StrokeColor = color.Black                 // Définir la couleur de la bordure
+	border.StrokeWidth = 3                           // Définir l'épaisseur de la bordure
+	border.CornerRadius = 20                         // Définir les coins arrondis
 
-	// Ajouter le rectangle de contour à la carte
-	cardContent.AddObject(border)
+	cardContent.Add(border) // Ajouter le rectangle de contour à la carte
 
 	return cardContent
 }
