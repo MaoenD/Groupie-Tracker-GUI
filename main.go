@@ -86,30 +86,41 @@ func main() { // Fonction Principale, lancement de l'application
 		searchButton.OnTapped() //COMPLETE ICI
 	}
 
-	artistsContainer := container.NewVBox() // Création du conteneur pour afficher les artistes
+	artistsContainer := container.NewVBox()
 
-	for i := 0; i < len(artists); i += 3 { // Ajouter les cartes des artistes par groupes de 3 dans des conteneurs de grille
-		rowContainer := container.NewGridWithColumns(3) // Créer un nouveau conteneur de grille pour chaque ligne d'artistes
-		for j := i; j < i+3 && j < len(artists); j++ {  // Ajouter les trois artistes de cette ligne dans la grille
-			card := createCardGeneralInfo(artists[j]) // Création des cards
-			rowContainer.Add(card)                    //Ajouter les cards à la colonne
+	for i := 0; i < len(artists); i += 3 {
+		rowContainer := container.NewHBox()    // Utilisation de HBox pour une disposition horizontale
+		columnContainer := container.NewVBox() // Utilisation de VBox pour une disposition verticale
+
+		space := widget.NewLabel("") // Créer un widget vide pour représenter l'espace
+
+		rowContainer.Add(space)
+		rowContainer.Add(space)
+		rowContainer.Add(space)
+		for j := i; j < i+3 && j < len(artists); j++ {
+			card := createCardGeneralInfo(artists[j])
+			rowContainer.Add(card)
+
+			if j < i+2 && j < len(artists) {
+				rowContainer.Add(space) // Ajouter l'espace après chaque carte
+			}
 		}
 
-		/* artistsContainer.Add(layout.NewSpacer()) // Ajouter un espacement */
-		artistsContainer.Add(rowContainer) // Ajoute des cards créer dans le container
+		columnContainer.Add(rowContainer)
+		artistsContainer.Add(columnContainer)
 	}
 
 	scrollContainer := container.NewVScroll(artistsContainer) // Créer un conteneur de défilement pour le conteneur principal
 	scrollContainer.SetMinSize(fyne.NewSize(1080, 720))       // Taille minimale pour activer le défilement
 
-	blockContent := mapFeature() // Création du bloc de contenu //MAP FEATURE
+	/* blockContent := mapFeature() */ // Création du bloc de contenu //MAP FEATURE
 
 	content := container.NewVBox( // Création du conteneur principal avec la couleur de fond spécifiée
-		searchBar,       // Ajout de la search bar
-		searchButton,    // Ajout du boutton
-		searchResults,   // Ajout de les résultats (si trouvés)
-		blockContent,    // Ajouter le bloc de contenu //MAP FEATURE
-		scrollContainer, // Utilisation du conteneur de défilement pour les artistes
+		searchBar,     // Ajout de la search bar
+		searchButton,  // Ajout du boutton
+		searchResults, // Ajout de les résultats (si trouvés)
+		/* blockContent,  */ // Ajouter le bloc de contenu //MAP FEATURE
+		scrollContainer,     // Utilisation du conteneur de défilement pour les artistes
 	)
 
 	centeredContent := container.New(layout.NewCenterLayout(), content) // Centrer les cartes dans la fenêtre
@@ -126,7 +137,7 @@ func main() { // Fonction Principale, lancement de l'application
 	myWindow.ShowAndRun()                    //run la fenêtre
 }
 
-func mapFeature() fyne.CanvasObject {
+/* func mapFeature() fyne.CanvasObject {
 	imagePath := "public/world_map1.jpg" // Chemin de l'image
 
 	image := canvas.NewImageFromFile(imagePath) // Charger l'image
@@ -140,7 +151,7 @@ func mapFeature() fyne.CanvasObject {
 
 	title := widget.NewLabel("Geolocation feature")                                                                      // Créer du titre
 	description := widget.NewLabel("Find out where and when your favorite artists will be performing around the globe.") // Créer de la description
-	/* description.Wrapping = fyne.TextWrapWord   */ // Activer le wrapping du texte
+	description.Wrapping = fyne.TextWrapWord                                                                             // Activer le wrapping du texte
 
 	textContainer := container.New(layout.NewVBoxLayout(), // Création d'un conteneur pour le texte
 		title,
@@ -153,7 +164,7 @@ func mapFeature() fyne.CanvasObject {
 	)
 
 	return blockContent
-}
+} */
 
 func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	image := canvas.NewImageFromFile(artist.Image) // Redimensionner l'image
@@ -167,6 +178,10 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	background.SetMinSize(fyne.NewSize(300, 300))   // Définir la taille minimum du bakcground
 	background.Resize(fyne.NewSize(296, 296))       // Redimensionner pour inclure les coin
 	background.CornerRadius = 20                    // Définir les coins arrondis
+
+	button := widget.NewButton("Search", func() {
+		fmt.Print(artist.Name)
+	})
 
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true}) // Nom de l'artiste en gras et plus gros
 
@@ -192,6 +207,7 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 		labelsContainer,    // Ajout titre et date
 		membersLabel,       // Afficher les membres du groupe
 		layout.NewSpacer(), // Ajout d'un petit espace vertical
+		button,
 	)
 
 	infoContainer.Resize(fyne.NewSize(300, 180)) // Définir la taille fixe pour le conteneur d'informations
