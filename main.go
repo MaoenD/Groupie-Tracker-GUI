@@ -171,7 +171,8 @@ func recherche(searchBar *widget.Entry, searchResults *fyne.Container, artists [
 		resultText := fmt.Sprintf("Artist found for: %s\n\n", searchText)
 		searchResultsObjects = append(searchResultsObjects, widget.NewLabel(resultText))
 		for _, artist := range foundArtists {
-			card := createCardAllInfo(artist)
+			card := createCardAllInfo(artist)                                   //nouvelle page de Giovanni
+			fmt.Print("Affiche de toutes les infos, nouvelle page à intégréer") //nouvelle page de Giovanni
 			searchResultsObjects = append(searchResultsObjects, card)
 		}
 	} else {
@@ -197,10 +198,12 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 
 	button := widget.NewButton("More information", func() {
 		fmt.Println(artist.Name)
+		fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") //nouvelle page de Giovanni
 	})
 
 	buttonFavorie := widget.NewButton("Add to favorite", func() {
-		fmt.Println(artist.Name)
+		fmt.Println("Ajouter aux favoris")
+		//fonction à intégré ici
 	})
 
 	buttonsContainer := container.NewHBox(
