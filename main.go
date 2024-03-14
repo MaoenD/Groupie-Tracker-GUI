@@ -155,10 +155,10 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 	}
 }
 
-func recherche(searchBar *widget.Entry, artistsContainer *fyne.Container, artists []Artist) {
+func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist) {
 	searchText := searchBar.Text
 
-	artistsContainer.Objects = nil
+	scrollContainer.Objects = nil
 
 	var foundArtists []Artist
 	for _, artist := range artists {
@@ -168,15 +168,33 @@ func recherche(searchBar *widget.Entry, artistsContainer *fyne.Container, artist
 	}
 
 	if len(foundArtists) > 0 {
-		for _, artist := range foundArtists {
-			card := createCardGeneralInfo(artist)
-			artistsContainer.Add(card)
+		for i := 0; i < len(foundArtists); i += 3 {
+			rowContainer := container.NewHBox()
+			columnContainer := container.NewVBox()
+
+			space := widget.NewLabel("")
+
+			rowContainer.Add(space)
+			rowContainer.Add(space)
+			rowContainer.Add(space)
+			for j := i; j < i+3 && j < len(foundArtists); j++ {
+				card := createCardGeneralInfo(foundArtists[j])
+				rowContainer.Add(card)
+
+				if j < i+2 && j < len(foundArtists) {
+					rowContainer.Add(space)
+				}
+			}
+
+			columnContainer.Add(rowContainer)
+			scrollContainer.Add(columnContainer)
 		}
 	} else {
 		noResultLabel := widget.NewLabel("No result found")
-		artistsContainer.Add(noResultLabel)
+		scrollContainer.Add(noResultLabel)
 	}
-	artistsContainer.Refresh()
+
+	scrollContainer.Refresh()
 }
 
 func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
@@ -243,7 +261,7 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	return cardContent
 }
 
-func createCardAllInfo(artist Artist) fyne.CanvasObject {
+/* func createCardAllInfo(artist Artist) fyne.CanvasObject {
 	image := canvas.NewImageFromFile(artist.Image) // Redimensionner l'image dans un canva
 	image.FillMode = canvas.ImageFillContain       // Définir le Fill image
 	image.SetMinSize(fyne.NewSize(120, 120))       // Définir la taille minimum de l'image
@@ -295,7 +313,7 @@ func createCardAllInfo(artist Artist) fyne.CanvasObject {
 	cardContent.Add(border) // Ajouter le rectangle de contour à la carte
 
 	return cardContent
-}
+} */
 
 func getAverageColor(imagePath string) color.Color {
 	file, err := os.Open(imagePath)
