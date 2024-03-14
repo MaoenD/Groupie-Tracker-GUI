@@ -125,39 +125,40 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 	}
 
 	var found bool
+	var correspondingResultAdded bool
 
 	for _, artist := range artists {
 		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(text)) {
 			found = true
 
-			artistContainer := container.New(layout.NewHBoxLayout())
+			if !correspondingResultAdded {
+				correspondingResultLabel := widget.NewLabel("Corresponding result: ")
+				searchResults.Add(correspondingResultLabel)
 
-			label := widget.NewLabel(artist.Name)
-			label.TextStyle.Bold = true
-			artistContainer.Add(label)
-
-			yearLabel := widget.NewLabel(fmt.Sprintf("%d", artist.YearStarted))
-			artistContainer.Add(yearLabel)
-
-			membersText := ""
-			if len(artist.Members) > 1 {
-				membersText = "(" + strings.Join(artist.Members, ", ") + ")"
+				correspondingResultAdded = true
 			}
-			membersLabel := widget.NewLabel(membersText)
-			artistContainer.Add(membersLabel)
 
-			searchResults.Add(artistContainer)
+			artistButton := widget.NewButton(artist.Name, func() {
+				fmt.Println(artist.Name)
+				fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
+			})
+
+			searchResults.Add(layout.NewSpacer())
+
+			searchResults.Add(artistButton)
 		}
 	}
 
-	if !found && len(searchResults.Objects) == 0 {
+	if !found {
 		noResultLabel := widget.NewLabel("No result")
 		searchResults.Add(noResultLabel)
 	}
 }
 
-func recherche(searchBar *widget.Entry, searchResults *fyne.Container, artists []Artist) {
+func recherche(searchBar *widget.Entry, artistsContainer *fyne.Container, artists []Artist) {
 	searchText := searchBar.Text
+
+	artistsContainer.Objects = nil
 
 	var foundArtists []Artist
 	for _, artist := range artists {
@@ -166,21 +167,16 @@ func recherche(searchBar *widget.Entry, searchResults *fyne.Container, artists [
 		}
 	}
 
-	searchResultsObjects := make([]fyne.CanvasObject, 0)
 	if len(foundArtists) > 0 {
-		resultText := fmt.Sprintf("Artist found for: %s\n\n", searchText)
-		searchResultsObjects = append(searchResultsObjects, widget.NewLabel(resultText))
 		for _, artist := range foundArtists {
-			card := createCardAllInfo(artist)                                   //nouvelle page de Giovanni
-			fmt.Print("Affiche de toutes les infos, nouvelle page à intégréer") //nouvelle page de Giovanni
-			searchResultsObjects = append(searchResultsObjects, card)
+			card := createCardGeneralInfo(artist)
+			artistsContainer.Add(card)
 		}
 	} else {
-		searchResultsObjects = append(searchResultsObjects, widget.NewLabel("No artist found: "+searchText))
+		noResultLabel := widget.NewLabel("No result found")
+		artistsContainer.Add(noResultLabel)
 	}
-
-	searchResults.Objects = searchResultsObjects
-	searchResults.Refresh()
+	artistsContainer.Refresh()
 }
 
 func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
