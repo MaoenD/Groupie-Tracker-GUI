@@ -379,7 +379,11 @@ func SecondPage(artist Artist) {
 
 	myApp := app.New()
 	myWindow := myApp.NewWindow("More information")
+	averageColor := getAverageColor(artist.Image)
 
+	background := canvas.NewRectangle(averageColor)
+	background.SetMinSize(fyne.NewSize(300, 300))
+	background.Resize(fyne.NewSize(296, 296))
 	image := canvas.NewImageFromFile(artist.Image)
 	image.FillMode = canvas.ImageFillContain
 	image.SetMinSize(fyne.NewSize(320, 320))
@@ -415,7 +419,7 @@ func SecondPage(artist Artist) {
 
 	infoContainer.Resize(fyne.NewSize(300, 200)) // Définir la taille fixe pour le conteneur d'informations
 
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), infoContainer) // Créer le conteneur pour la carte de l'artiste
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background, infoContainer) // Créer le conteneur pour la carte de l'artiste
 	cardContent.Resize(fyne.NewSize(300, 300))
 
 	myWindow.SetContent(cardContent)
