@@ -58,7 +58,7 @@ func main() {
 	searchResults := container.New(layout.NewVBoxLayout())
 
 	searchButton := widget.NewButton("Search", func() {
-		recherche(searchBar, searchResults, artists)
+		recherche(searchBar, searchResults, artists, myApp)
 	})
 
 	searchBar.OnSubmitted = func(_ string) {
@@ -81,7 +81,7 @@ func main() {
 		rowContainer.Add(space)
 		rowContainer.Add(space)
 		for j := i; j < i+3 && j < len(artists); j++ {
-			card := createCardGeneralInfo(artists[j])
+			card := createCardGeneralInfo(artists[j], myApp)
 			rowContainer.Add(card)
 
 			if j < i+2 && j < len(artists) {
@@ -141,7 +141,7 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 			artistButton := widget.NewButton(artist.Name, func() {
 				fmt.Println(artist.Name)
 				fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Gio
-				SecondPage(artist)
+				// SecondPage(artist, myApp)
 			})
 
 			searchResults.Add(layout.NewSpacer())
@@ -156,7 +156,7 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 	}
 }
 
-func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist) {
+func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
 	searchText := searchBar.Text
 
 	scrollContainer.Objects = nil
@@ -179,7 +179,7 @@ func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 			rowContainer.Add(space)
 			rowContainer.Add(space)
 			for j := i; j < i+3 && j < len(foundArtists); j++ {
-				card := createCardGeneralInfo(foundArtists[j])
+				card := createCardGeneralInfo(foundArtists[j], myApp)
 				rowContainer.Add(card)
 
 				if j < i+2 && j < len(foundArtists) {
@@ -198,7 +198,7 @@ func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 	scrollContainer.Refresh()
 }
 
-func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
+func createCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 	image := canvas.NewImageFromFile(artist.Image)
 	image.FillMode = canvas.ImageFillContain
 	image.SetMinSize(fyne.NewSize(120, 120))
@@ -214,7 +214,7 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	button := widget.NewButton("More information", func() {
 		fmt.Println(artist.Name)
 		fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") //nouvelle page de Giovanni
-		SecondPage(artist)
+		SecondPage(artist, myApp)
 
 	})
 
@@ -375,15 +375,14 @@ func getAverageColor(imagePath string) color.Color {
 // =================================================================================================
 // =================================================================================================
 
-func SecondPage(artist Artist) {
-
-	myApp := app.New()
+func SecondPage(artist Artist, myApp fyne.App) {
 	myWindow := myApp.NewWindow("More information")
 	averageColor := getAverageColor(artist.Image)
 
 	background := canvas.NewRectangle(averageColor)
 	background.SetMinSize(fyne.NewSize(300, 300))
 	background.Resize(fyne.NewSize(296, 296))
+
 	image := canvas.NewImageFromFile(artist.Image)
 	image.FillMode = canvas.ImageFillContain
 	image.SetMinSize(fyne.NewSize(320, 320))
@@ -423,5 +422,6 @@ func SecondPage(artist Artist) {
 	cardContent.Resize(fyne.NewSize(300, 300))
 
 	myWindow.SetContent(cardContent)
+	myWindow.CenterOnScreen()
 	myWindow.Show()
 }
