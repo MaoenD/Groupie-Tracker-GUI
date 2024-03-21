@@ -376,12 +376,14 @@ func getAverageColor(imagePath string) color.Color {
 // =================================================================================================
 
 func SecondPage(artist Artist) {
+
 	myApp := app.New()
-	myWindow := myApp.NewWindow("Informations sur l'artiste")
+	myWindow := myApp.NewWindow("More information")
+
 	image := canvas.NewImageFromFile(artist.Image)
 	image.FillMode = canvas.ImageFillContain
-	image.SetMinSize(fyne.NewSize(120, 120))
-	image.Resize(fyne.NewSize(120, 120))
+	image.SetMinSize(fyne.NewSize(320, 320))
+	image.Resize(fyne.NewSize(220, 220))
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
 	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("02-Jan-2006")))
@@ -393,6 +395,13 @@ func SecondPage(artist Artist) {
 	} else {
 		nextConcertLabel.Text += " No upcoming concerts" // Affichage si aucun événeement
 	}
+
+	nameLabel.Alignment = fyne.TextAlignCenter
+	yearLabel.Alignment = fyne.TextAlignCenter
+	debutAlbumLabel.Alignment = fyne.TextAlignCenter
+	membersLabel.Alignment = fyne.TextAlignCenter
+	lastConcertLabel.Alignment = fyne.TextAlignCenter
+	nextConcertLabel.Alignment = fyne.TextAlignCenter
 
 	infoContainer := container.NewVBox( // Créer un conteneur VBox pour organiser les labels verticalement
 		image,            // Ajout de l'image
