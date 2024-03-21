@@ -1,6 +1,7 @@
 package main
 
 import ( //importation des bibliotheques nécessaires
+
 	"fmt"
 	"image"
 	"image/color"
@@ -29,6 +30,7 @@ type Artist struct { // Définition de la struct "Artist"
 	Members      []string
 	LastConcert  Concert
 	NextConcerts []Concert
+	Favorite     bool
 }
 
 var artists = []Artist{ // Définir les données des artistes
@@ -51,25 +53,37 @@ var artists = []Artist{ // Définir les données des artistes
 func main() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Menu - Groupie Tracker")
+	logoApp, _ := fyne.LoadResourceFromPath("public/logo.png")
+	myWindow.SetIcon(logoApp)
 
-	logo, _ := fyne.LoadResourceFromPath("public/logo.png") // icon ( logo)
-	myWindow.SetIcon(logo)
+	logoButton := widget.NewButtonWithIcon("", (loadImageResource("public/logo.png")), func() {
+		fmt.Print("Press")
+	})
 
 	searchBar := widget.NewEntry()
 	searchBar.SetPlaceHolder("Search Artists...")
-
-	searchResults := container.New(layout.NewVBoxLayout())
-
+	searchBar.Resize(fyne.NewSize(1080, searchBar.MinSize().Height))
+	searchResults := container.NewVBox()
 	searchButton := widget.NewButton("Search", func() {
 		recherche(searchBar, searchResults, artists, myApp)
 	})
+
+	filterButton := widget.NewButton("Filtrer", func() {
+		Filter(myApp)
+	})
+
+	searchBarContainer := container.NewVBox(
+		container.NewBorder(nil, nil, logoButton, filterButton, searchBar),
+		searchButton,
+	)
+	searchBarContainer.Resize(searchBarContainer.MinSize())
 
 	searchBar.OnSubmitted = func(_ string) {
 		searchButton.OnTapped()
 	}
 
 	searchBar.OnChanged = func(text string) {
-		generateSearchSuggestions(text, searchResults, artists)
+		generateSearchSuggestions(text, searchResults, artists, myApp)
 	}
 
 	artistsContainer := container.NewVBox()
@@ -100,8 +114,7 @@ func main() {
 	scrollContainer.SetMinSize(fyne.NewSize(1080, 720))
 
 	content := container.NewVBox(
-		searchBar,
-		searchButton,
+		searchBarContainer,
 		searchResults,
 		scrollContainer,
 	)
@@ -120,7 +133,7 @@ func main() {
 	myWindow.ShowAndRun()
 }
 
-func generateSearchSuggestions(text string, searchResults *fyne.Container, artists []Artist) {
+func generateSearchSuggestions(text string, searchResults *fyne.Container, artists []Artist, myApp fyne.App) {
 	searchResults.Objects = nil
 
 	if text == "" {
@@ -142,9 +155,8 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 			}
 
 			artistButton := widget.NewButton(artist.Name, func() {
-				fmt.Println(artist.Name)
-				fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Gio
-				// SecondPage(artist, myApp)
+				fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
+				SecondPage(artist, myApp)
 			})
 
 			searchResults.Add(layout.NewSpacer())
@@ -214,24 +226,38 @@ func createCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 	background.Resize(fyne.NewSize(296, 296))
 	background.CornerRadius = 20
 
-	button := widget.NewButton("More information", func() {
+	button := widget.NewButton("          More information          ", func() {
 		fmt.Println(artist.Name)
-		fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") //nouvelle page de Giovanni
+		fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)")
 		SecondPage(artist, myApp)
-
 	})
 
-	buttonFavorie := widget.NewButton("Add to favorite", func() {
-		fmt.Println("Ajouter aux favoris")
-		//fonction à intégré ici
+	var likeButton *widget.Button
+	var likeIcon string
+	if artist.Favorite {
+		likeIcon = "public/likeOn.ico"
+	} else {
+		likeIcon = "public/likeOff.ico"
+	}
+
+	likeButton = widget.NewButton("", func() {
+		artist.Favorite = !artist.Favorite
+		if artist.Favorite {
+			likeButton.SetIcon(loadImageResource("public/likeOn.ico"))
+		} else {
+			likeButton.SetIcon(loadImageResource("public/likeOff.ico"))
+		}
 	})
 
+	// Charger l'icône initiale du bouton en fonction de l'état initial du favori
+	likeButton.SetIcon(loadImageResource(likeIcon))
+
+	// Code existant omis pour des raisons de concision
+
+	// Ajouter le bouton de favori au conteneur de boutons
 	buttonsContainer := container.NewHBox(
-		layout.NewSpacer(),
-		button,
-		layout.NewSpacer(),
-		buttonFavorie,
-		layout.NewSpacer(),
+		widget.NewLabel("  "),
+		container.NewBorder(nil, layout.NewSpacer(), nil, likeButton, button),
 	)
 
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
@@ -266,60 +292,6 @@ func createCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 
 	return cardContent
 }
-
-/* func createCardAllInfo(artist Artist) fyne.CanvasObject {
-	image := canvas.NewImageFromFile(artist.Image) // Redimensionner l'image dans un canva
-	image.FillMode = canvas.ImageFillContain       // Définir le Fill image
-	image.SetMinSize(fyne.NewSize(120, 120))       // Définir la taille minimum de l'image
-	image.Resize(fyne.NewSize(120, 120))           // Définir la nouvelle taille
-
-	averageColor := getAverageColor(artist.Image) // Obtenir la couleur moyenne de l'image
-
-	background := canvas.NewRectangle(averageColor) // Création d'un rectangle coloré pour l'arrière-plan de la card
-	background.SetMinSize(fyne.NewSize(300, 300))   // Définir la taille minimum du bakcground
-	background.Resize(fyne.NewSize(296, 296))       // Redimensionner pour inclure les coin
-	background.CornerRadius = 20                    // Définir les coins arrondis
-
-	// Créer des labels pour afficher les informations sur l'artiste
-	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})                                                 // Affichage du nom
-	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))                                                                     // Affichage de l'année de commencement
-	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("02-Jan-2006")))                                           // Affichage de la date de l'album
-	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))                                                       // Affichage des noms des artistes
-	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Date.Format("02-Jan-2006"), artist.LastConcert.Location)) // Affichage de la date du dernier concert
-	nextConcertLabel := widget.NewLabel("Next Concert:")                                                                                                  // Affichage de la date du prochain concert
-	if len(artist.NextConcerts) > 0 {                                                                                                                     // Condtion pour afficher les dates
-		nextConcertLabel.Text += fmt.Sprintf(" %s - %s", artist.NextConcerts[0].Date.Format("02-Jan-2006"), artist.NextConcerts[0].Location) // Affichage des dates et lieux
-	} else {
-		nextConcertLabel.Text += " No upcoming concerts" // Affichage si aucun événeement
-	}
-
-	infoContainer := container.NewVBox( // Créer un conteneur VBox pour organiser les labels verticalement
-		image,            // Ajout de l'image
-		nameLabel,        // Ajout du nom
-		yearLabel,        // Ajout de l'année de commencement
-		debutAlbumLabel,  // AJout de la date de l'album
-		membersLabel,     // Ajout des noms des artites
-		lastConcertLabel, // AJout de la date du dernier concert
-		nextConcertLabel, // Ajout du label du prochain concert
-	)
-
-	infoContainer.Resize(fyne.NewSize(300, 200)) // Définir la taille fixe pour le conteneur d'informations
-
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background, infoContainer) // Créer le conteneur pour la carte de l'artiste
-	cardContent.Resize(fyne.NewSize(300, 300))                                                          // Redimensionner le conteneur
-
-	// Créer un rectangle pour le contour avec des coins arrondis
-	border := canvas.NewRectangle(color.Transparent) // Définir une couleur transparente pour le remplissage
-	border.SetMinSize(fyne.NewSize(300, 300))        // Définir la taille minimum
-	border.Resize(fyne.NewSize(296, 296))            // Redimensionner légèrement la bordure pour inclure les coins arrondis
-	border.StrokeColor = color.Black                 // Définir la couleur de la bordure
-	border.StrokeWidth = 3                           // Définir l'épaisseur de la bordure
-	border.CornerRadius = 20                         // Définir les coins arrondis
-
-	cardContent.Add(border) // Ajouter le rectangle de contour à la carte
-
-	return cardContent
-} */
 
 func getAverageColor(imagePath string) color.Color {
 	file, err := os.Open(imagePath)
@@ -374,14 +346,10 @@ func getAverageColor(imagePath string) color.Color {
 	return averageColor
 }
 
-// =================================================================================================
-// =================================================================================================
-// =================================================================================================
-
 func SecondPage(artist Artist, myApp fyne.App) {
 	myWindow := myApp.NewWindow("More information")
 
-	logo, _ := fyne.LoadResourceFromPath("public/yoshi.png")
+	logo, _ := fyne.LoadResourceFromPath("public/logo.png")
 	myWindow.SetIcon(logo)
 
 	averageColor := getAverageColor(artist.Image)
@@ -431,4 +399,53 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	myWindow.SetContent(cardContent)
 	myWindow.CenterOnScreen()
 	myWindow.Show()
+}
+
+func Filter(myApp fyne.App) {
+	myWindow := myApp.NewWindow("Groupie Tracker GUI Filters")
+
+	logo, _ := fyne.LoadResourceFromPath("public/logo.png")
+	myWindow.SetIcon(logo)
+
+	myWindow.Resize(fyne.NewSize(800, 600))
+	myWindow.SetFixedSize(true)
+
+	creationDateRange := widget.NewSlider(1990, 2024)
+	creationDateRange.Resize(fyne.NewSize(200, 40))
+	creationDateRangeLabel := widget.NewLabel("Creation Date Range")
+
+	firstAlbumDateRange := widget.NewSlider(1970, 2024)
+	firstAlbumDateRange.Resize(fyne.NewSize(200, 40))
+	firstAlbumDateRangeLabel := widget.NewLabel("First Album Date Range")
+
+	numMembersCheck := widget.NewCheck("Number of Members", func(checked bool) {})
+	numMembersCheck.SetChecked(true)
+
+	locationsCheck := widget.NewCheck("Locations of Concerts", func(checked bool) {})
+	locationsCheck.SetChecked(true)
+
+	// Create apply button
+	applyButton := widget.NewButton("Apply Filters", func() {
+	})
+
+	filtersContainer := container.NewVBox(
+		creationDateRangeLabel, creationDateRange,
+		firstAlbumDateRangeLabel, firstAlbumDateRange,
+		numMembersCheck, locationsCheck,
+		applyButton,
+	)
+
+	myWindow.SetContent(filtersContainer)
+
+	myWindow.CenterOnScreen()
+	myWindow.Show()
+}
+
+func loadImageResource(path string) fyne.Resource {
+	image, err := fyne.LoadResourceFromPath(path)
+	if err != nil {
+		fmt.Println("Erreur lors du chargement de l'icône:", err)
+		return nil
+	}
+	return image
 }
