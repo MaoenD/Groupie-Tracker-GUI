@@ -150,7 +150,6 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 			if !correspondingResultAdded {
 				correspondingResultLabel := widget.NewLabel("Corresponding result: ")
 				searchResults.Add(correspondingResultLabel)
-
 				correspondingResultAdded = true
 			}
 
@@ -270,7 +269,7 @@ func createCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 	if len(artist.Members) == 1 {
 		membersText = "Solo Artist\n"
 	} else if len(artist.Members) > 0 {
-		membersText = "Members: " + strings.Join(artist.Members, ", ")
+		membersText = "Members : " + strings.Join(artist.Members, ", ")
 	}
 	membersLabel := widget.NewLabel(membersText)
 	membersLabel.Wrapping = fyne.TextWrapWord
@@ -410,33 +409,53 @@ func Filter(myApp fyne.App) {
 	myWindow.Resize(fyne.NewSize(800, 600))
 	myWindow.SetFixedSize(true)
 
-	creationDateRange := widget.NewSlider(1990, 2024)
+	currentYear := float64(time.Now().Year())
+
+	creationDateRange := widget.NewSlider(1970, currentYear)
 	creationDateRange.Resize(fyne.NewSize(200, 40))
 	creationDateRangeLabel := widget.NewLabel("Creation Date Range")
 
-	firstAlbumDateRange := widget.NewSlider(1970, 2024)
+	firstAlbumDateRange := widget.NewSlider(1970, currentYear)
 	firstAlbumDateRange.Resize(fyne.NewSize(200, 40))
 	firstAlbumDateRangeLabel := widget.NewLabel("First Album Date Range")
 
-	numMembersCheck := widget.NewCheck("Number of Members", func(checked bool) {})
-	numMembersCheck.SetChecked(true)
+	var numMembersCheck *widget.CheckGroup
+	var numMembersBox *fyne.Container
 
-	locationsCheck := widget.NewCheck("Locations of Concerts", func(checked bool) {})
-	locationsCheck.SetChecked(true)
-
-	// Create apply button
-	applyButton := widget.NewButton("Apply Filters", func() {
+	radioSoloGroup := widget.NewRadioGroup([]string{"Solo", "Group"}, func(selected string) {
+		if selected == "Group" {
+			numMembersBox.Show()
+		} else {
+			numMembersBox.Hide()
+		}
 	})
 
-	filtersContainer := container.NewVBox(
+	numMembersCheck = widget.NewCheckGroup([]string{"All", "2", "3", "4", "5", "6+"}, func(selected []string) {})
+	numMembersCheck.SetSelected([]string{"All"})
+
+	numMembersBox = container.NewHBox()
+	for _, option := range []string{"All", "2", "3", "4", "5", "6+"} {
+		numMembersBox.Add(widget.NewCheck(option, func(checked bool) {}))
+	}
+	numMembersBox.Hide()
+
+	locationsCheck := widget.NewCheck("Locations of Concerts", func(checked bool) {})
+	locationsCheck.SetChecked(false)
+
+	applyButton := widget.NewButton("Apply Filters", func() {})
+
+	filtersContainer := container.New(
+		layout.NewVBoxLayout(),
 		creationDateRangeLabel, creationDateRange,
 		firstAlbumDateRangeLabel, firstAlbumDateRange,
-		numMembersCheck, locationsCheck,
+		radioSoloGroup,
+		numMembersBox,
+		locationsCheck,
 		applyButton,
 	)
 
+	// Définir le contenu de la fenêtre et l'afficher
 	myWindow.SetContent(filtersContainer)
-
 	myWindow.CenterOnScreen()
 	myWindow.Show()
 }
