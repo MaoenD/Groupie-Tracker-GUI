@@ -52,6 +52,9 @@ func main() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Menu - Groupie Tracker")
 
+	logo, _ := fyne.LoadResourceFromPath("public/logo.png") // icon ( logo)
+	myWindow.SetIcon(logo)
+
 	searchBar := widget.NewEntry()
 	searchBar.SetPlaceHolder("Search Artists...")
 
@@ -377,6 +380,10 @@ func getAverageColor(imagePath string) color.Color {
 
 func SecondPage(artist Artist, myApp fyne.App) {
 	myWindow := myApp.NewWindow("More information")
+
+	logo, _ := fyne.LoadResourceFromPath("public/yoshi.png")
+	myWindow.SetIcon(logo)
+
 	averageColor := getAverageColor(artist.Image)
 
 	background := canvas.NewRectangle(averageColor)
@@ -406,7 +413,7 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	lastConcertLabel.Alignment = fyne.TextAlignCenter
 	nextConcertLabel.Alignment = fyne.TextAlignCenter
 
-	infoContainer := container.NewVBox( // Créer un conteneur VBox pour organiser les labels verticalement
+	infoContainer := container.NewVBox(
 		image,            // Ajout de l'image
 		nameLabel,        // Ajout du nom
 		yearLabel,        // Ajout de l'année de commencement
