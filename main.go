@@ -140,7 +140,8 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 
 			artistButton := widget.NewButton(artist.Name, func() {
 				fmt.Println(artist.Name)
-				fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
+				fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Gio
+				SecondPage(artist)
 			})
 
 			searchResults.Add(layout.NewSpacer())
@@ -213,6 +214,8 @@ func createCardGeneralInfo(artist Artist) fyne.CanvasObject {
 	button := widget.NewButton("More information", func() {
 		fmt.Println(artist.Name)
 		fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") //nouvelle page de Giovanni
+		SecondPage(artist)
+
 	})
 
 	buttonFavorie := widget.NewButton("Add to favorite", func() {
@@ -366,4 +369,46 @@ func getAverageColor(imagePath string) color.Color {
 	}
 
 	return averageColor
+}
+
+// =================================================================================================
+// =================================================================================================
+// =================================================================================================
+
+func SecondPage(artist Artist) {
+	myApp := app.New()
+	myWindow := myApp.NewWindow("Informations sur l'artiste")
+	image := canvas.NewImageFromFile(artist.Image)
+	image.FillMode = canvas.ImageFillContain
+	image.SetMinSize(fyne.NewSize(120, 120))
+	image.Resize(fyne.NewSize(120, 120))
+	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
+	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("02-Jan-2006")))
+	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))
+	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Date.Format("02-Jan-2006"), artist.LastConcert.Location))
+	nextConcertLabel := widget.NewLabel("Next Concert:")
+	if len(artist.NextConcerts) > 0 {
+		nextConcertLabel.Text += fmt.Sprintf(" %s - %s", artist.NextConcerts[0].Date.Format("02-Jan-2006"), artist.NextConcerts[0].Location)
+	} else {
+		nextConcertLabel.Text += " No upcoming concerts" // Affichage si aucun événeement
+	}
+
+	infoContainer := container.NewVBox( // Créer un conteneur VBox pour organiser les labels verticalement
+		image,            // Ajout de l'image
+		nameLabel,        // Ajout du nom
+		yearLabel,        // Ajout de l'année de commencement
+		debutAlbumLabel,  // AJout de la date de l'album
+		membersLabel,     // Ajout des noms des artites
+		lastConcertLabel, // AJout de la date du dernier concert
+		nextConcertLabel, // Ajout du label du prochain concert
+	)
+
+	infoContainer.Resize(fyne.NewSize(300, 200)) // Définir la taille fixe pour le conteneur d'informations
+
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), infoContainer) // Créer le conteneur pour la carte de l'artiste
+	cardContent.Resize(fyne.NewSize(300, 300))
+
+	myWindow.SetContent(cardContent)
+	myWindow.Show()
 }
