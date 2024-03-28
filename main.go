@@ -61,8 +61,12 @@ func main() {
 	searchBar.SetPlaceHolder("Search Artists...")
 	searchBar.Resize(fyne.NewSize(1080, searchBar.MinSize().Height))
 	searchResults := container.NewVBox()
+	artistsContainer := container.NewVBox()
+	scrollContainer := container.NewVScroll(artistsContainer)
+	scrollContainer.SetMinSize(fyne.NewSize(1080, 720))
 	searchButton := widget.NewButton("Search", func() {
-		recherche(searchBar, searchResults, artists, myApp)
+		recherche(searchBar, artistsContainer, artists, myApp)
+		searchBar.SetText("")
 	})
 
 	searchResultCountLabel := widget.NewLabel("")
@@ -95,8 +99,6 @@ func main() {
 		}
 	}
 
-	artistsContainer := container.NewVBox()
-
 	for i := 0; i < len(artists); i += 3 {
 		rowContainer := container.NewHBox()
 		columnContainer := container.NewVBox()
@@ -118,9 +120,6 @@ func main() {
 		columnContainer.Add(rowContainer)
 		artistsContainer.Add(columnContainer)
 	}
-
-	scrollContainer := container.NewVScroll(artistsContainer)
-	scrollContainer.SetMinSize(fyne.NewSize(1080, 720))
 
 	content := container.NewVBox(
 		searchBarContainer,
@@ -236,7 +235,8 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 
 func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
 	searchText := strings.ToLower(searchBar.Text)
-	scrollContainer.Objects = nil
+
+	artistsContainer := container.NewVBox()
 
 	var foundArtists []Artist
 
@@ -270,13 +270,14 @@ func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 			}
 
 			columnContainer.Add(rowContainer)
-			scrollContainer.Add(columnContainer)
+			artistsContainer.Add(columnContainer)
 		}
 	} else {
 		noResultLabel := widget.NewLabel("No result found")
-		scrollContainer.Add(noResultLabel)
+		artistsContainer.Add(noResultLabel)
 	}
 
+	scrollContainer.Objects = []fyne.CanvasObject{artistsContainer}
 	scrollContainer.Refresh()
 }
 
