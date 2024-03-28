@@ -167,27 +167,30 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 
 		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(text)) {
 			count++
-			artistButton := widget.NewButton(artist.Name, func() {
-				fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
-				SecondPage(artist, myApp)
-			})
+			artistButton := widget.NewButton(artist.Name, func(a Artist) func() {
+				return func() {
+					SecondPage(a, myApp)
+				}
+			}(artist))
 			searchResults.Add(artistButton)
 		} else {
 			if strconv.Itoa(artist.YearStarted) == text {
 				count++
-				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func() {
-					fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
-					SecondPage(artist, myApp)
-				})
+				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
+					return func() {
+						SecondPage(a, myApp)
+					}
+				}(artist))
 				searchResults.Add(artistButton)
 			}
 
 			if strconv.Itoa(artist.DebutAlbum.Year()) == text {
 				count++
-				artistButton := widget.NewButton(artist.Name+" (Debut Album: "+strconv.Itoa(artist.DebutAlbum.Year())+")", func() {
-					fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
-					SecondPage(artist, myApp)
-				})
+				artistButton := widget.NewButton(artist.Name+" (Debut Album: "+strconv.Itoa(artist.DebutAlbum.Year())+")", func(a Artist) func() {
+					return func() {
+						SecondPage(a, myApp)
+					}
+				}(artist))
 				searchResults.Add(artistButton)
 			}
 
@@ -195,10 +198,11 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 				for _, member := range artist.Members {
 					if strings.Contains(strings.ToLower(member), strings.ToLower(text)) {
 						count++
-						artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func() {
-							fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
-							SecondPage(artist, myApp)
-						})
+						artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func(a Artist) func() {
+							return func() {
+								SecondPage(a, myApp)
+							}
+						}(artist))
 						searchResults.Add(artistButton)
 						break
 					}
@@ -208,10 +212,11 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 			for _, concert := range artist.NextConcerts {
 				if strings.Contains(strings.ToLower(concert.Location), strings.ToLower(text)) {
 					count++
-					artistButton := widget.NewButton(artist.Name+" (Concert Location: "+concert.Location+")", func() {
-						fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
-						SecondPage(artist, myApp)
-					})
+					artistButton := widget.NewButton(artist.Name+" (Concert Location: "+concert.Location+")", func(a Artist) func() {
+						return func() {
+							SecondPage(a, myApp)
+						}
+					}(artist))
 					searchResults.Add(artistButton)
 					break
 				}
