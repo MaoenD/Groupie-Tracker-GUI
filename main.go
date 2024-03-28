@@ -87,9 +87,9 @@ func main() {
 	}
 
 	searchBar.OnChanged = func(text string) {
-		count := generateSearchSuggestions(text, searchResults, artists, myApp)
+		count := generateSearchSuggestions(text, searchResults, artists, myApp, 5)
 		if count != 0 {
-			searchResultCountLabel.SetText(fmt.Sprintf("%d results", count))
+			searchResultCountLabel.SetText(fmt.Sprintf("Results for '%s':", text))
 		} else {
 			searchResultCountLabel.SetText("No result")
 		}
@@ -142,15 +142,20 @@ func main() {
 	myWindow.ShowAndRun()
 }
 
-func generateSearchSuggestions(text string, searchResults *fyne.Container, artists []Artist, myApp fyne.App) int {
+func generateSearchSuggestions(text string, searchResults *fyne.Container, artists []Artist, myApp fyne.App, limit int) int {
 	searchResults.Objects = nil
-	count := 0
 
-	if text == "" {
-		return count
+	if text == "" || len(artists) == 0 {
+		return 0
 	}
 
+	count := 0
+
 	for _, artist := range artists {
+		if count >= limit {
+			break
+		}
+
 		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(text)) {
 			count++
 			artistButton := widget.NewButton(artist.Name, func() {
@@ -159,7 +164,6 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 			})
 			searchResults.Add(artistButton)
 		} else {
-			// Recherche par année de commencement
 			if strconv.Itoa(artist.YearStarted) == text {
 				count++
 				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func() {
@@ -205,6 +209,14 @@ func generateSearchSuggestions(text string, searchResults *fyne.Container, artis
 			}
 		}
 	}
+
+	if count < len(artists) && count >= limit {
+		showMoreButton := widget.NewButton("More results", func() {
+			generateSearchSuggestions(text, searchResults, artists, myApp, limit+5)
+		})
+		searchResults.Add(showMoreButton)
+	}
+
 	return count
 }
 
@@ -565,7 +577,3 @@ func loadImageResource(path string) fyne.Resource {
 	}
 	return image
 }
-
-/* func getDonne(Artist) {
-
-} */
