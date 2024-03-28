@@ -6,6 +6,7 @@ import ( //importation des bibliotheques nécessaires
 	"image"
 	"image/color"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -68,6 +69,8 @@ func main() {
 		recherche(searchBar, searchResults, artists, myApp)
 	})
 
+	searchResultCountLabel := widget.NewLabel("")
+
 	filterButton := widget.NewButton("Filtrer", func() {
 		Filter(myApp)
 	})
@@ -75,6 +78,7 @@ func main() {
 	searchBarContainer := container.NewVBox(
 		container.NewBorder(nil, nil, logoButton, filterButton, searchBar),
 		searchButton,
+		searchResultCountLabel,
 	)
 	searchBarContainer.Resize(searchBarContainer.MinSize())
 
@@ -83,7 +87,12 @@ func main() {
 	}
 
 	searchBar.OnChanged = func(text string) {
-		generateSearchSuggestions(text, searchResults, artists, myApp)
+		count := generateSearchSuggestions(text, searchResults, artists, myApp)
+		if count != 0 {
+			searchResultCountLabel.SetText(fmt.Sprintf("%d results", count))
+		} else {
+			searchResultCountLabel.SetText("No result")
+		}
 	}
 
 	artistsContainer := container.NewVBox()
@@ -133,51 +142,84 @@ func main() {
 	myWindow.ShowAndRun()
 }
 
-func generateSearchSuggestions(text string, searchResults *fyne.Container, artists []Artist, myApp fyne.App) {
+func generateSearchSuggestions(text string, searchResults *fyne.Container, artists []Artist, myApp fyne.App) int {
 	searchResults.Objects = nil
+	count := 0
 
 	if text == "" {
-		return
+		return count
 	}
-
-	var found bool
-	var correspondingResultAdded bool
 
 	for _, artist := range artists {
 		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(text)) {
-			found = true
-
-			if !correspondingResultAdded {
-				correspondingResultLabel := widget.NewLabel("Corresponding result: ")
-				searchResults.Add(correspondingResultLabel)
-				correspondingResultAdded = true
-			}
-
+			count++
 			artistButton := widget.NewButton(artist.Name, func() {
 				fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
 				SecondPage(artist, myApp)
 			})
-
-			searchResults.Add(layout.NewSpacer())
-
 			searchResults.Add(artistButton)
+		} else {
+			// Recherche par année de commencement
+			if strconv.Itoa(artist.YearStarted) == text {
+				count++
+				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func() {
+					fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
+					SecondPage(artist, myApp)
+				})
+				searchResults.Add(artistButton)
+			}
+
+			if strconv.Itoa(artist.DebutAlbum.Year()) == text {
+				count++
+				artistButton := widget.NewButton(artist.Name+" (Debut Album: "+strconv.Itoa(artist.DebutAlbum.Year())+")", func() {
+					fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
+					SecondPage(artist, myApp)
+				})
+				searchResults.Add(artistButton)
+			}
+
+			if len(artist.Members) > 1 {
+				for _, member := range artist.Members {
+					if strings.Contains(strings.ToLower(member), strings.ToLower(text)) {
+						count++
+						artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func() {
+							fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
+							SecondPage(artist, myApp)
+						})
+						searchResults.Add(artistButton)
+						break
+					}
+				}
+			}
+
+			for _, concert := range artist.NextConcerts {
+				if strings.Contains(strings.ToLower(concert.Location), strings.ToLower(text)) {
+					count++
+					artistButton := widget.NewButton(artist.Name+" (Concert Location: "+concert.Location+")", func() {
+						fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)") // Nouvelle page de Giovanni
+						SecondPage(artist, myApp)
+					})
+					searchResults.Add(artistButton)
+					break
+				}
+			}
 		}
 	}
-
-	if !found {
-		noResultLabel := widget.NewLabel("No result")
-		searchResults.Add(noResultLabel)
-	}
+	return count
 }
 
 func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
-	searchText := searchBar.Text
-
+	searchText := strings.ToLower(searchBar.Text)
 	scrollContainer.Objects = nil
 
 	var foundArtists []Artist
+
 	for _, artist := range artists {
-		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(searchText)) {
+		if strings.Contains(strings.ToLower(artist.Name), searchText) ||
+			strconv.Itoa(artist.YearStarted) == searchText ||
+			strconv.Itoa(artist.DebutAlbum.Year()) == searchText ||
+			checkMemberName(artist.Members, searchText) ||
+			checkConcertLocation(artist.NextConcerts, searchText) {
 			foundArtists = append(foundArtists, artist)
 		}
 	}
@@ -210,6 +252,24 @@ func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 	}
 
 	scrollContainer.Refresh()
+}
+
+func checkMemberName(members []string, searchText string) bool {
+	for _, member := range members {
+		if strings.Contains(strings.ToLower(member), searchText) {
+			return true
+		}
+	}
+	return false
+}
+
+func checkConcertLocation(concerts []Concert, searchText string) bool {
+	for _, concert := range concerts {
+		if strings.Contains(strings.ToLower(concert.Location), searchText) {
+			return true
+		}
+	}
+	return false
 }
 
 func createCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
@@ -505,3 +565,7 @@ func loadImageResource(path string) fyne.Resource {
 	}
 	return image
 }
+
+/* func getDonne(Artist) {
+
+} */
