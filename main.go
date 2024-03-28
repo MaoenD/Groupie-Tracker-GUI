@@ -57,10 +57,6 @@ func main() {
 	logoApp, _ := fyne.LoadResourceFromPath("public/logo.png")
 	myWindow.SetIcon(logoApp)
 
-	logoButton := widget.NewButtonWithIcon("", (loadImageResource("public/logo.png")), func() {
-		fmt.Print("Press")
-	})
-
 	searchBar := widget.NewEntry()
 	searchBar.SetPlaceHolder("Search Artists...")
 	searchBar.Resize(fyne.NewSize(1080, searchBar.MinSize().Height))
@@ -70,6 +66,10 @@ func main() {
 	})
 
 	searchResultCountLabel := widget.NewLabel("")
+
+	logoButton := widget.NewButtonWithIcon("", (loadImageResource("public/logo.png")), func() {
+		refreshContent(searchBar, searchResults, searchResultCountLabel)
+	})
 
 	filterButton := widget.NewButton("Filtrer", func() {
 		Filter(myApp)
@@ -128,6 +128,9 @@ func main() {
 		scrollContainer,
 	)
 
+	dynamicLayout := layout.NewVBoxLayout()
+	content.Layout = dynamicLayout
+
 	centeredContent := container.New(layout.NewCenterLayout(), content)
 
 	background := canvas.NewRectangle(color.NRGBA{R: 0x5C, G: 0x64, B: 0x73, A: 0xFF})
@@ -140,6 +143,12 @@ func main() {
 	myWindow.SetContent(backgroundContainer)
 	myWindow.Resize(fyne.NewSize(1080, 720))
 	myWindow.ShowAndRun()
+}
+
+func refreshContent(searchBar *widget.Entry, searchResults *fyne.Container, searchResultCountLabel *widget.Label) {
+	searchBar.SetText("")
+	searchResults.Objects = nil
+	searchResultCountLabel.SetText("")
 }
 
 func generateSearchSuggestions(text string, searchResults *fyne.Container, artists []Artist, myApp fyne.App, limit int) int {
