@@ -346,7 +346,7 @@ func getAverageColor(imagePath string) color.Color {
 }
 
 func SecondPage(artist Artist, myApp fyne.App) {
-	myWindow := myApp.NewWindow("More information")
+	myWindow := myApp.NewWindow("Information - " + artist.Name)
 
 	logo, _ := fyne.LoadResourceFromPath("public/logo.png")
 	myWindow.SetIcon(logo)
@@ -401,23 +401,40 @@ func SecondPage(artist Artist, myApp fyne.App) {
 }
 
 func Filter(myApp fyne.App) {
+	minCreationYear := artists[0].YearStarted
+	maxCreationYear := artists[0].YearStarted
+	minFirstAlbumYear := artists[0].DebutAlbum.Year()
+	maxFirstAlbumYear := artists[0].DebutAlbum.Year()
+
+	for _, artist := range artists {
+		if artist.YearStarted < minCreationYear {
+			minCreationYear = artist.YearStarted
+		}
+		if artist.YearStarted > maxCreationYear {
+			maxCreationYear = artist.YearStarted
+		}
+		if year := artist.DebutAlbum.Year(); year < minFirstAlbumYear {
+			minFirstAlbumYear = year
+		}
+		if year := artist.DebutAlbum.Year(); year > maxFirstAlbumYear {
+			maxFirstAlbumYear = year
+		}
+	}
+
+	concertLocations := make([]string, 0)
+	locationsMap := make(map[string]bool)
+	for _, artist := range artists {
+		for _, concert := range artist.NextConcerts {
+			if _, found := locationsMap[concert.Location]; !found {
+				concertLocations = append(concertLocations, concert.Location)
+				locationsMap[concert.Location] = true
+			}
+		}
+	}
+
 	myWindow := myApp.NewWindow("Groupie Tracker GUI Filters")
-
-	logo, _ := fyne.LoadResourceFromPath("public/logo.png")
-	myWindow.SetIcon(logo)
-
 	myWindow.Resize(fyne.NewSize(800, 600))
 	myWindow.SetFixedSize(true)
-
-	currentYear := float64(time.Now().Year())
-
-	creationDateRange := widget.NewSlider(1970, currentYear)
-	creationDateRange.Resize(fyne.NewSize(200, 40))
-	creationDateRangeLabel := widget.NewLabel("Creation Date Range")
-
-	firstAlbumDateRange := widget.NewSlider(1970, currentYear)
-	firstAlbumDateRange.Resize(fyne.NewSize(200, 40))
-	firstAlbumDateRangeLabel := widget.NewLabel("First Album Date Range")
 
 	var numMembersCheck *widget.CheckGroup
 	var numMembersBox *fyne.Container
@@ -439,22 +456,42 @@ func Filter(myApp fyne.App) {
 	}
 	numMembersBox.Hide()
 
-	locationsCheck := widget.NewCheck("Locations of Concerts", func(checked bool) {})
-	locationsCheck.SetChecked(false)
+	creationDateRange := widget.NewSlider(float64(minCreationYear), float64(maxCreationYear))
+	firstAlbumDateRange := widget.NewSlider(float64(minFirstAlbumYear), float64(maxFirstAlbumYear))
+
+	creationDateRangeLabel := widget.NewLabel(fmt.Sprintf("Creation Date Range: %d - %d", minCreationYear, maxCreationYear))
+	firstAlbumDateRangeLabel := widget.NewLabel(fmt.Sprintf("First Album Date Range: %d - %d", minFirstAlbumYear, maxFirstAlbumYear))
+
+	updateLabels := func() {
+		creationRange := int(creationDateRange.Value)
+		firstAlbumRange := int(firstAlbumDateRange.Value)
+
+		creationDateRangeLabel.SetText(fmt.Sprintf("Creation Date Range: %d - %d", creationRange, maxCreationYear))
+		firstAlbumDateRangeLabel.SetText(fmt.Sprintf("First Album Date Range: %d - %d", firstAlbumRange, maxFirstAlbumYear))
+	}
+
+	creationDateRange.OnChanged = func(value float64) {
+		updateLabels()
+	}
+
+	firstAlbumDateRange.OnChanged = func(value float64) {
+		updateLabels()
+	}
+
+	locationsSelect := widget.NewSelect(concertLocations, func(selected string) {})
+	locationsSelect.Resize(fyne.NewSize(200, 150))
 
 	applyButton := widget.NewButton("Apply Filters", func() {})
 
-	filtersContainer := container.New(
-		layout.NewVBoxLayout(),
+	filtersContainer := container.NewVBox(
 		creationDateRangeLabel, creationDateRange,
 		firstAlbumDateRangeLabel, firstAlbumDateRange,
 		radioSoloGroup,
 		numMembersBox,
-		locationsCheck,
+		locationsSelect,
 		applyButton,
 	)
 
-	// Définir le contenu de la fenêtre et l'afficher
 	myWindow.SetContent(filtersContainer)
 	myWindow.CenterOnScreen()
 	myWindow.Show()
