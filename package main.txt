@@ -51,11 +51,24 @@ var artists = []Artist{ // Définir les données des artistes
 	{Name: "Groshi", Image: "public/yoshi.png", YearStarted: 2000, DebutAlbum: time.Date(2001, time.July, 27, 0, 0, 0, 0, time.UTC), Members: []string{"Mario Mario", "Luigi Mario", "Toad le champi"}, LastConcert: Concert{Date: time.Date(2023, time.December, 9, 0, 0, 0, 0, time.UTC), Location: "Tokyo - Japon"}, NextConcerts: []Concert{{Date: time.Date(2026, time.April, 30, 0, 0, 0, 0, time.UTC), Location: "Paris - France"}, {Date: time.Date(2024, time.July, 3, 0, 0, 0, 0, time.UTC), Location: "London"}}},
 }
 
+type Filters struct {
+	MinCreationYear   int
+	MaxCreationYear   int
+	MinFirstAlbumYear int
+	MaxFirstAlbumYear int
+	SoloOrGroup       string
+	NumMembers        string
+	ConcertLocation   string
+	StartDate         time.Time // Nouveau champ pour la date de début de la plage
+	EndDate           time.Time // Nouveau champ pour la date de fin de la plage
+}
+
 func main() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Menu - Groupie Tracker")
 	logoApp, _ := fyne.LoadResourceFromPath("public/logo.png")
 	myWindow.SetIcon(logoApp)
+	var filters = Filters{}
 
 	searchBar := widget.NewEntry()
 	searchBar.SetPlaceHolder("Search Artists...")
@@ -65,7 +78,7 @@ func main() {
 	scrollContainer := container.NewVScroll(artistsContainer)
 	scrollContainer.SetMinSize(fyne.NewSize(1080, 720))
 	searchButton := widget.NewButton("Search", func() {
-		recherche(searchBar, artistsContainer, artists, myApp)
+		recherche(searchBar, artistsContainer, artists, myApp, filters)
 		searchBar.SetText("")
 	})
 
@@ -91,7 +104,7 @@ func main() {
 	}
 
 	searchBar.OnChanged = func(text string) {
-		count := generateSearchSuggestions(text, searchResults, artists, myApp, 5)
+		count := generateSearchSuggestions(text, searchResults, artists, myApp, filters, 5)
 		if count != 0 {
 			searchResultCountLabel.SetText(fmt.Sprintf("Results for '%s':", text))
 		} else {
@@ -144,7 +157,56 @@ func main() {
 	myWindow.ShowAndRun()
 }
 
-func generateSearchSuggestions(text string, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App, limit int) int {
+func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App, filters Filters) {
+	searchText := strings.ToLower(searchBar.Text)
+
+	artistsContainer := container.NewVBox()
+
+	var foundArtists []Artist
+
+	for _, artist := range artists {
+		// Appliquer les filtres
+		if (artist.YearStarted >= filters.MinCreationYear && artist.YearStarted <= filters.MaxCreationYear) &&
+			(artist.DebutAlbum.Year() >= filters.MinFirstAlbumYear && artist.DebutAlbum.Year() <= filters.MaxFirstAlbumYear) &&
+			(filters.SoloOrGroup == "" || filters.SoloOrGroup == "Solo" && len(artist.Members) == 1 || filters.SoloOrGroup == "Group" && len(artist.Members) > 1) &&
+			(filters.NumMembers == "" || filters.NumMembers == "All" || (filters.NumMembers == "6+" && len(artist.Members) >= 6) || strconv.Itoa(len(artist.Members)) == filters.NumMembers) &&
+			(filters.ConcertLocation == "" || checkConcertLocation(artist.NextConcerts, filters.ConcertLocation)) &&
+			(strings.Contains(strings.ToLower(artist.Name), searchText) || strconv.Itoa(artist.YearStarted) == searchText || strconv.Itoa(artist.DebutAlbum.Year()) == searchText || checkMemberName(artist.Members, searchText) || checkConcertLocation(artist.NextConcerts, searchText)) {
+			foundArtists = append(foundArtists, artist)
+		}
+	}
+
+	if len(foundArtists) > 0 {
+		for i := 0; i < len(foundArtists); i += 3 {
+			rowContainer := container.NewHBox()
+			columnContainer := container.NewVBox()
+
+			space := widget.NewLabel("")
+
+			rowContainer.Add(space)
+			rowContainer.Add(space)
+			rowContainer.Add(space)
+			for j := i; j < i+3 && j < len(foundArtists); j++ {
+				card := createCardGeneralInfo(foundArtists[j], myApp)
+				rowContainer.Add(card)
+
+				if j < i+2 && j < len(foundArtists) {
+					rowContainer.Add(space)
+				}
+			}
+
+			columnContainer.Add(rowContainer)
+			artistsContainer.Add(columnContainer)
+		}
+	} else {
+		noResultLabel := widget.NewLabel("No result found")
+		artistsContainer.Add(noResultLabel)
+	}
+
+	scrollContainer.Objects = []fyne.CanvasObject{artistsContainer}
+	scrollContainer.Refresh()
+}
+func generateSearchSuggestions(text string, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App, filters Filters, limit int) int {
 	scrollContainer.Objects = nil
 
 	if text == "" || len(artists) == 0 {
@@ -158,7 +220,12 @@ func generateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 			break
 		}
 
-		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(text)) {
+		if (strings.Contains(strings.ToLower(artist.Name), strings.ToLower(text)) || strconv.Itoa(artist.YearStarted) == text || strconv.Itoa(artist.DebutAlbum.Year()) == text || checkMemberName(artist.Members, text) || checkConcertLocation(artist.NextConcerts, text)) &&
+			((artist.YearStarted >= filters.MinCreationYear && artist.YearStarted <= filters.MaxCreationYear) &&
+				(artist.DebutAlbum.Year() >= filters.MinFirstAlbumYear && artist.DebutAlbum.Year() <= filters.MaxFirstAlbumYear) &&
+				(filters.SoloOrGroup == "" || filters.SoloOrGroup == "Solo" && len(artist.Members) == 1 || filters.SoloOrGroup == "Group" && len(artist.Members) > 1) &&
+				(filters.NumMembers == "" || filters.NumMembers == "All" || (filters.NumMembers == "6+" && len(artist.Members) >= 6) || strconv.Itoa(len(artist.Members)) == filters.NumMembers) &&
+				(filters.ConcertLocation == "" || checkConcertLocation(artist.NextConcerts, filters.ConcertLocation))) {
 			count++
 			artistButton := widget.NewButton(artist.Name, func(a Artist) func() {
 				return func() {
@@ -224,7 +291,7 @@ func generateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 
 	if count < len(artists) && count >= limit {
 		showMoreButton := widget.NewButton("More results", func() {
-			generateSearchSuggestions(text, scrollContainer, artists, myApp, limit+5)
+			generateSearchSuggestions(text, scrollContainer, artists, myApp, filters, limit+5)
 		})
 		scrollContainer.Add(showMoreButton)
 	}
@@ -264,54 +331,6 @@ func refreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Labe
 
 	// Actualiser le texte du label du nombre de résultats
 	searchResultCountLabel.SetText("")
-}
-
-func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
-	searchText := strings.ToLower(searchBar.Text)
-
-	artistsContainer := container.NewVBox()
-
-	var foundArtists []Artist
-
-	for _, artist := range artists {
-		if strings.Contains(strings.ToLower(artist.Name), searchText) ||
-			strconv.Itoa(artist.YearStarted) == searchText ||
-			strconv.Itoa(artist.DebutAlbum.Year()) == searchText ||
-			checkMemberName(artist.Members, searchText) ||
-			checkConcertLocation(artist.NextConcerts, searchText) {
-			foundArtists = append(foundArtists, artist)
-		}
-	}
-
-	if len(foundArtists) > 0 {
-		for i := 0; i < len(foundArtists); i += 3 {
-			rowContainer := container.NewHBox()
-			columnContainer := container.NewVBox()
-
-			space := widget.NewLabel("")
-
-			rowContainer.Add(space)
-			rowContainer.Add(space)
-			rowContainer.Add(space)
-			for j := i; j < i+3 && j < len(foundArtists); j++ {
-				card := createCardGeneralInfo(foundArtists[j], myApp)
-				rowContainer.Add(card)
-
-				if j < i+2 && j < len(foundArtists) {
-					rowContainer.Add(space)
-				}
-			}
-
-			columnContainer.Add(rowContainer)
-			artistsContainer.Add(columnContainer)
-		}
-	} else {
-		noResultLabel := widget.NewLabel("No result found")
-		artistsContainer.Add(noResultLabel)
-	}
-
-	scrollContainer.Objects = []fyne.CanvasObject{artistsContainer}
-	scrollContainer.Refresh()
 }
 
 func checkMemberName(members []string, searchText string) bool {
@@ -603,6 +622,7 @@ func Filter(myApp fyne.App) {
 
 	reset := widget.NewButton("Reset Filters", func() {})
 	applyButton := widget.NewButton("Apply Filters", func() {
+		// applyFilter(creationDateRange, firstAlbumDateRange, radioSoloGroup, numMembersCheck, locationsSelect)
 		myWindow.Close()
 	})
 
@@ -628,4 +648,17 @@ func loadImageResource(path string) fyne.Resource {
 		return nil
 	}
 	return image
+}
+
+func applyFilter(creationDateRange *widget.Slider, firstAlbumDateRange *widget.Slider, radioSoloGroup *widget.RadioGroup, numMembersCheck *widget.CheckGroup, locationsSelect *widget.Select) {
+	creationRange := int(creationDateRange.Value)
+	firstAlbumRange := int(firstAlbumDateRange.Value)
+
+	selectedRadio := radioSoloGroup.Selected
+
+	selectedNumMembers := numMembersCheck.Selected
+
+	selectedLocation := locationsSelect.Selected
+
+	fmt.Printf("Création Range: %d, Premier Album Range: %d, Radio sélectionné: %s, Membres sélectionnés: %v, Localisation sélectionnée: %s\n", creationRange, firstAlbumRange, selectedRadio, selectedNumMembers, selectedLocation)
 }
