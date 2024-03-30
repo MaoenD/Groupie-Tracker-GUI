@@ -231,41 +231,6 @@ func generateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 
 	return count
 }
-
-func refreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Label, artistsContainer *fyne.Container, artists []Artist, myApp fyne.App) {
-	searchBar.SetText("") // Effacer le texte de la barre de recherche
-
-	// Réinitialiser le contenu de artistsContainer avec les résultats de recherche initiaux
-	artistsContainer.Objects = nil
-	for i := 0; i < len(artists); i += 3 {
-		rowContainer := container.NewHBox()
-		columnContainer := container.NewVBox()
-
-		space := widget.NewLabel("")
-
-		rowContainer.Add(space)
-		rowContainer.Add(space)
-		rowContainer.Add(space)
-		for j := i; j < i+3 && j < len(artists); j++ {
-			card := createCardGeneralInfo(artists[j], myApp)
-			rowContainer.Add(card)
-
-			if j < i+2 && j < len(artists) {
-				rowContainer.Add(space)
-			}
-		}
-
-		columnContainer.Add(rowContainer)
-		artistsContainer.Add(columnContainer)
-	}
-
-	// Actualiser l'affichage du contenu
-	artistsContainer.Refresh()
-
-	// Actualiser le texte du label du nombre de résultats
-	searchResultCountLabel.SetText("")
-}
-
 func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
 	searchText := strings.ToLower(searchBar.Text)
 
@@ -312,6 +277,40 @@ func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 
 	scrollContainer.Objects = []fyne.CanvasObject{artistsContainer}
 	scrollContainer.Refresh()
+}
+
+func refreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Label, artistsContainer *fyne.Container, artists []Artist, myApp fyne.App) {
+	searchBar.SetText("") // Effacer le texte de la barre de recherche
+
+	// Réinitialiser le contenu de artistsContainer avec les résultats de recherche initiaux
+	artistsContainer.Objects = nil
+	for i := 0; i < len(artists); i += 3 {
+		rowContainer := container.NewHBox()
+		columnContainer := container.NewVBox()
+
+		space := widget.NewLabel("")
+
+		rowContainer.Add(space)
+		rowContainer.Add(space)
+		rowContainer.Add(space)
+		for j := i; j < i+3 && j < len(artists); j++ {
+			card := createCardGeneralInfo(artists[j], myApp)
+			rowContainer.Add(card)
+
+			if j < i+2 && j < len(artists) {
+				rowContainer.Add(space)
+			}
+		}
+
+		columnContainer.Add(rowContainer)
+		artistsContainer.Add(columnContainer)
+	}
+
+	// Actualiser l'affichage du contenu
+	artistsContainer.Refresh()
+
+	// Actualiser le texte du label du nombre de résultats
+	searchResultCountLabel.SetText("")
 }
 
 func checkMemberName(members []string, searchText string) bool {
@@ -520,12 +519,55 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	myWindow.Show()
 }
 
-func Filter(myApp fyne.App) {
-	minCreationYear := artists[0].YearStarted
-	maxCreationYear := artists[0].YearStarted
-	minFirstAlbumYear := artists[0].DebutAlbum.Year()
-	maxFirstAlbumYear := artists[0].DebutAlbum.Year()
+func loadImageResource(path string) fyne.Resource {
+	image, err := fyne.LoadResourceFromPath(path)
+	if err != nil {
+		fmt.Println("Erreur lors du chargement de l'icône:", err)
+		return nil
+	}
+	return image
+}
 
+var (
+	minCreationYear     int
+	maxCreationYear     int
+	minFirstAlbumYear   int
+	maxFirstAlbumYear   int
+	concertLocations    []string
+	creationDateRange   *widget.Slider
+	firstAlbumDateRange *widget.Slider
+	radioSoloGroup      *widget.RadioGroup
+	numMembersCheck     *widget.CheckGroup
+	numMembersBox       *fyne.Container
+	locationsSelect     *widget.Select
+	myWindow            fyne.Window
+	windowOpened        bool
+
+	selectedRadioValue    string
+	selectedNumMembers    []string
+	selectedLocationValue string
+
+	savedCreationRange   float64
+	savedFirstAlbumRange float64
+)
+
+func Filter(myApp fyne.App) {
+	if myWindow != nil {
+		myWindow.Close()
+	}
+	initializeFilters(myApp)
+}
+
+func initializeFilters(myApp fyne.App) {
+	// Initialisation des valeurs pour les dates
+	minCreationYear = artists[0].YearStarted
+	maxCreationYear = artists[0].YearStarted
+	minFirstAlbumYear = artists[0].DebutAlbum.Year()
+	maxFirstAlbumYear = artists[0].DebutAlbum.Year()
+
+	// Initialisation des lieux de concert
+	concertLocations = make([]string, 0)
+	locationsMap := make(map[string]bool)
 	for _, artist := range artists {
 		if artist.YearStarted < minCreationYear {
 			minCreationYear = artist.YearStarted
@@ -539,11 +581,6 @@ func Filter(myApp fyne.App) {
 		if year := artist.DebutAlbum.Year(); year > maxFirstAlbumYear {
 			maxFirstAlbumYear = year
 		}
-	}
-
-	concertLocations := make([]string, 0)
-	locationsMap := make(map[string]bool)
-	for _, artist := range artists {
 		for _, concert := range artist.NextConcerts {
 			if _, found := locationsMap[concert.Location]; !found {
 				concertLocations = append(concertLocations, concert.Location)
@@ -552,32 +589,47 @@ func Filter(myApp fyne.App) {
 		}
 	}
 
-	myWindow := myApp.NewWindow("Groupie Tracker GUI Filters")
-	myWindow.Resize(fyne.NewSize(800, 600))
-	myWindow.SetFixedSize(true)
-
-	var numMembersCheck *widget.CheckGroup
-	var numMembersBox *fyne.Container
-
-	radioSoloGroup := widget.NewRadioGroup([]string{"Solo", "Group"}, func(selected string) {
+	// Création des widgets
+	creationDateRange = widget.NewSlider(float64(minCreationYear), float64(maxCreationYear))
+	firstAlbumDateRange = widget.NewSlider(float64(minFirstAlbumYear), float64(maxFirstAlbumYear))
+	radioSoloGroup = widget.NewRadioGroup([]string{"Solo", "Group"}, func(selected string) {
 		if selected == "Group" {
 			numMembersBox.Show()
 		} else {
 			numMembersBox.Hide()
 		}
 	})
-
 	numMembersCheck = widget.NewCheckGroup([]string{"All", "2", "3", "4", "5", "6+"}, func(selected []string) {})
 	numMembersCheck.SetSelected([]string{"All"})
-
 	numMembersBox = container.NewHBox()
 	for _, option := range []string{"All", "2", "3", "4", "5", "6+"} {
 		numMembersBox.Add(widget.NewCheck(option, func(checked bool) {}))
 	}
 	numMembersBox.Hide()
+	locationsSelect = widget.NewSelect(concertLocations, func(selected string) {})
+	locationsSelect.Resize(fyne.NewSize(200, 150))
 
-	creationDateRange := widget.NewSlider(float64(minCreationYear), float64(maxCreationYear))
-	firstAlbumDateRange := widget.NewSlider(float64(minFirstAlbumYear), float64(maxFirstAlbumYear))
+	// Initialisation des valeurs sélectionnées
+	radioSoloGroup.SetSelected(selectedRadioValue)
+	numMembersCheck.SetSelected(selectedNumMembers)
+	locationsSelect.SetSelected(selectedLocationValue)
+
+	// Initialisation des sliders avec les valeurs sauvegardées
+	creationDateRange.SetValue(savedCreationRange)
+	firstAlbumDateRange.SetValue(savedFirstAlbumRange)
+	savedCreationRange = creationDateRange.Value
+	savedFirstAlbumRange = firstAlbumDateRange.Value
+
+	// Création de la fenêtre et des éléments de l'interface utilisateur
+	myWindow = myApp.NewWindow("Groupie Tracker GUI Filters")
+	myWindow.Resize(fyne.NewSize(800, 600))
+	myWindow.SetFixedSize(true)
+
+	reset := widget.NewButton("Reset Filters", func() {})
+	applyButton := widget.NewButton("Apply Filters", func() {
+		applyFilter()
+		myWindow.Close()
+	})
 
 	creationDateRangeLabel := widget.NewLabel(fmt.Sprintf("Creation Date Range: %d - %d", minCreationYear, maxCreationYear))
 	firstAlbumDateRangeLabel := widget.NewLabel(fmt.Sprintf("First Album Date Range: %d - %d", minFirstAlbumYear, maxFirstAlbumYear))
@@ -598,14 +650,7 @@ func Filter(myApp fyne.App) {
 		updateLabels()
 	}
 
-	locationsSelect := widget.NewSelect(concertLocations, func(selected string) {})
-	locationsSelect.Resize(fyne.NewSize(200, 150))
-
-	reset := widget.NewButton("Reset Filters", func() {})
-	applyButton := widget.NewButton("Apply Filters", func() {
-		myWindow.Close()
-	})
-
+	// Création du conteneur de widgets
 	filtersContainer := container.NewVBox(
 		reset,
 		creationDateRangeLabel, creationDateRange,
@@ -619,13 +664,17 @@ func Filter(myApp fyne.App) {
 	myWindow.SetContent(filtersContainer)
 	myWindow.CenterOnScreen()
 	myWindow.Show()
+	windowOpened = true
 }
 
-func loadImageResource(path string) fyne.Resource {
-	image, err := fyne.LoadResourceFromPath(path)
-	if err != nil {
-		fmt.Println("Erreur lors du chargement de l'icône:", err)
-		return nil
-	}
-	return image
+func applyFilter() {
+	// Mettre à jour les valeurs sélectionnées
+	selectedRadioValue = radioSoloGroup.Selected
+	selectedNumMembers = numMembersCheck.Selected
+	selectedLocationValue = locationsSelect.Selected
+
+	// Affichage des valeurs sélectionnées
+	fmt.Printf("Radio sélectionné: %s, Membres sélectionnés: %v, Localisation sélectionnée: %s\n", selectedRadioValue, selectedNumMembers, selectedLocationValue)
+	savedCreationRange = creationDateRange.Value
+	savedFirstAlbumRange = firstAlbumDateRange.Value
 }
