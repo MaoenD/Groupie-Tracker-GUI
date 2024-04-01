@@ -32,6 +32,7 @@ type Artist struct { // Définition de la struct "Artist"
 	LastConcert  Concert
 	NextConcerts []Concert
 	Favorite     bool
+	Type         string
 }
 
 var artists = []Artist{ // Définir les données des artistes
@@ -487,12 +488,14 @@ func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 	var foundArtists []Artist
 
 	for _, artist := range artists {
-		if strings.Contains(strings.ToLower(artist.Name), searchText) ||
-			strconv.Itoa(artist.YearStarted) == searchText ||
-			strconv.Itoa(artist.DebutAlbum.Year()) == searchText ||
-			checkMemberName(artist.Members, searchText) ||
-			checkConcertLocation(artist.NextConcerts, searchText) {
-			foundArtists = append(foundArtists, artist)
+		if artistMatchesFilters(artist, savedFilter) {
+			if strings.Contains(strings.ToLower(artist.Name), searchText) ||
+				strconv.Itoa(artist.YearStarted) == searchText ||
+				strconv.Itoa(artist.DebutAlbum.Year()) == searchText ||
+				checkMemberName(artist.Members, searchText) ||
+				checkConcertLocation(artist.NextConcerts, searchText) {
+				foundArtists = append(foundArtists, artist)
+			}
 		}
 	}
 
@@ -525,6 +528,51 @@ func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 
 	scrollContainer.Objects = []fyne.CanvasObject{artistsContainer}
 	scrollContainer.Refresh()
+}
+
+func artistMatchesFilters(artist Artist, filter saveFilter) bool {
+	if filter.RadioSelected != "" {
+		if filter.RadioSelected == "Solo" && len(artist.Members) > 1 {
+			return false
+		} else if filter.RadioSelected == "Group" && len(artist.Members) <= 1 {
+			return false
+		}
+	}
+
+	if len(filter.NumMembersSelected) > 0 && !contains(filter.NumMembersSelected, strconv.Itoa(len(artist.Members))) {
+		return false
+	}
+
+	if filter.LocationSelected != "" && !artistHasConcertLocation(artist, filter.LocationSelected) {
+		return false
+	}
+
+	if filter.CreationRange > 0 && (float64(artist.YearStarted) < filter.CreationRange || float64(artist.YearStarted) > filter.CreationRange) {
+		return false
+	}
+
+	if filter.FirstAlbumRange > 0 && (float64(artist.DebutAlbum.Year()) < filter.FirstAlbumRange || float64(artist.DebutAlbum.Year()) > filter.FirstAlbumRange) {
+		return false
+	}
+	return true
+}
+
+func artistHasConcertLocation(artist Artist, location string) bool {
+	for _, concert := range artist.NextConcerts {
+		if strings.EqualFold(concert.Location, location) {
+			return true
+		}
+	}
+	return false
+}
+
+func contains(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }
 
 var (
@@ -596,12 +644,12 @@ func initializeFilters(myApp fyne.App) {
 			numMembersBox.Hide()
 		}
 	})
-	numMembersCheck = widget.NewCheckGroup([]string{"All", "2", "3", "4", "5", "6+"}, func(selected []string) {
+	numMembersCheck = widget.NewCheckGroup([]string{"2", "3", "4", "5", "6+"}, func(selected []string) {
 		selectedNumMembers = selected
 	})
 
 	numMembersBox = container.NewHBox()
-	for _, option := range []string{"All", "2", "3", "4", "5", "6+"} {
+	for _, option := range []string{"2", "3", "4", "5", "6+"} {
 		option := option
 		check := widget.NewCheck(option, func(checked bool) {
 			selected := numMembersCheck.Selected
@@ -646,7 +694,19 @@ func initializeFilters(myApp fyne.App) {
 	myWindow.Resize(fyne.NewSize(800, 600))
 	myWindow.SetFixedSize(true)
 
-	reset := widget.NewButton("Reset Filters", func() {})
+	reset := widget.NewButton("Reset Filters", func() {
+		selectedRadioValue = ""
+		selectedNumMembers = nil
+		selectedLocationValue = ""
+
+		creationDateRange.SetValue(float64(minCreationYear))
+		firstAlbumDateRange.SetValue(float64(minFirstAlbumYear))
+
+		radioSoloGroup.SetSelected(selectedRadioValue)
+		numMembersCheck.SetSelected(selectedNumMembers)
+		locationsSelect.SetSelected(selectedLocationValue)
+	})
+
 	applyButton := widget.NewButton("Apply Filters", func() {
 		applyFilter()
 		myWindow.Close()
@@ -688,7 +748,17 @@ func initializeFilters(myApp fyne.App) {
 	windowOpened = true
 }
 
-func applyFilter() {
+type saveFilter struct {
+	RadioSelected      string
+	NumMembersSelected []string
+	LocationSelected   string
+	CreationRange      float64
+	FirstAlbumRange    float64
+}
+
+var savedFilter saveFilter
+
+func applyFilter() saveFilter {
 	selectedRadioValue = radioSoloGroup.Selected
 	selectedLocationValue = locationsSelect.Selected
 
@@ -697,8 +767,15 @@ func applyFilter() {
 	savedCreationRange = creationDateRange.Value
 	savedFirstAlbumRange = firstAlbumDateRange.Value
 
-	fmt.Printf("Radio sélectionné: %s, Membres sélectionnés: %v, Localisation sélectionnée: %s\n", selectedRadioValue, selectedNumMembers, selectedLocationValue)
+	savedFilter = saveFilter{
+		RadioSelected:      selectedRadioValue,
+		NumMembersSelected: selectedNumMembers,
+		LocationSelected:   selectedLocationValue,
+		CreationRange:      savedCreationRange,
+		FirstAlbumRange:    savedFirstAlbumRange,
+	}
 
-	savedCreationRange = creationDateRange.Value
-	savedFirstAlbumRange = firstAlbumDateRange.Value
+	fmt.Printf("Radio sélectionné: %s, Membres sélectionnés: %v, Localisation sélectionnée: %s, savedCreationRange: %f, savedFirstAlbumRange: %f\n", selectedRadioValue, selectedNumMembers, selectedLocationValue, savedCreationRange, savedFirstAlbumRange)
+
+	return savedFilter
 }
