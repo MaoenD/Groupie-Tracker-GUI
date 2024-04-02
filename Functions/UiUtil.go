@@ -11,6 +11,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+var creationDateRange *widget.Slider
+
 func CreateBlockContent() fyne.CanvasObject {
 	// Chemin de l'image à charger
 	imagePath := "public/img/world_map1.jpg"
@@ -114,10 +116,10 @@ func Filter(myApp fyne.App) {
 
 func initializeFilters(myApp fyne.App) {
 	// Initialisation des valeurs minimales et maximales pour les années de création et de sortie des premiers albums
-	minCreationYear = Artists[0].CreationDate
+	minCreationYear = Artists[0].YearStarted
 	maxCreationYear = Artists[0].YearStarted
-	minFirstAlbumYear = Artists[0].FirstAlbum()
-	maxFirstAlbumYear = Artists[0].DebutAlbum.Year()
+	minFirstAlbumYear := Artists[0].FirstAlbum.Year()
+	maxFirstAlbumYear = Artists[0].FirstAlbum.Year()
 
 	// Initialisation des emplacements de concerts disponibles
 	concertLocations = make([]string, 0)
@@ -131,10 +133,10 @@ func initializeFilters(myApp fyne.App) {
 			maxCreationYear = artist.YearStarted
 		}
 		// Mise à jour des valeurs minimales et maximales pour les années du premier album
-		if year := artist.DebutAlbum.Year(); year < minFirstAlbumYear {
+		if year := artist.FirstAlbum.Year(); year < minFirstAlbumYear {
 			minFirstAlbumYear = year
 		}
-		if year := artist.DebutAlbum.Year(); year > maxFirstAlbumYear {
+		if year := artist.FirstAlbum.Year(); year > maxFirstAlbumYear {
 			maxFirstAlbumYear = year
 		}
 		// Recherche des emplacements de concerts uniques
