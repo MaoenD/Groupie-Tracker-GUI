@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="11b2b682-5e00-4673-8e67-d0edbb78d715" name="Changes" comment="" />
+    <list default="true" id="11b2b682-5e00-4673-8e67-d0edbb78d715" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/Display.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/Display.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/Struct.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/Struct.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/UiUtil.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/UiUtil.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/Fonction.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/dataLoad.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/dataLoad.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -57,6 +65,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\dorge\Desktop\Groupie-Tracker-GUI\Functions" />
       <recent name="C:\Users\dorge\Desktop\Groupie-Tracker-GUI\public" />
       <recent name="C:\Users\dorge\Desktop\Groupie-Tracker-GUI" />
     </key>

@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"groupie-tracker-gui/Functions"
 	"image/color"
+	"log"
 )
 
 /********************************************************************************/
@@ -28,6 +29,25 @@ func main() {
 
 	// Définir l'icône de la fenêtre
 	myWindow.SetIcon(logoApp)
+
+	// Charger les données des artistes, des lieux et des relations
+	artists, err := Functions.LoadArtists("https://groupietrackers.herokuapp.com/api/artists")
+	if err != nil {
+		log.Fatalf("Failed to load artists: %v", err)
+	}
+	fmt.Printf("Loaded %d artists\n", len(artists))
+
+	locations, err := Functions.LoadLocations("https://groupietrackers.herokuapp.com/api/locations")
+	if err != nil {
+		log.Fatalf("Failed to load locations: %v", err)
+	}
+	fmt.Printf("Loaded locations for %d artists\n", len(locations))
+
+	relations, err := Functions.LoadRelations("https://groupietrackers.herokuapp.com/api/relation")
+	if err != nil {
+		log.Fatalf("Failed to load relations: %v", err)
+	}
+	fmt.Printf("Loaded relations for %d artists\n", len(relations))
 
 	// Créer une zone de recherche avec un champ de texte
 	searchBar := widget.NewEntry()

@@ -140,7 +140,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				scrollContainer.Add(artistButton)
 			} else {
 				// Vérifier si le texte de recherche correspond à l'année de commencement de l'artiste
-				if strconv.Itoa(artist.YearStarted) == text {
+				if strconv.Itoa(artist.CreationDate) == text {
 					// Incrémenter le compteur et ajouter un bouton d'artiste avec l'année de commencement au conteneur de défilement
 					count++
 					artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
@@ -153,10 +153,10 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				}
 
 				// Vérifier si le texte de recherche correspond à l'année de l'album de début de l'artiste
-				if strconv.Itoa(artist.DebutAlbum.Year()) == text {
+				if strconv.Itoa(artist.FirstAlbum.Year()) == text {
 					// Incrémenter le compteur et ajouter un bouton d'artiste avec l'année de l'album de début au conteneur de défilement
 					count++
-					artistButton := widget.NewButton(artist.Name+" (Debut Album: "+strconv.Itoa(artist.DebutAlbum.Year())+")", func(a Artist) func() {
+					artistButton := widget.NewButton(artist.Name+" (Debut Album: "+strconv.Itoa(artist.FirstAlbum.Year())+")", func(a Artist) func() {
 						return func() {
 							SecondPage(a, myApp)
 						}

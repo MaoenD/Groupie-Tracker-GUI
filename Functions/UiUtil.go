@@ -113,9 +113,9 @@ func Filter(myApp fyne.App) {
 
 func initializeFilters(myApp fyne.App) {
 	// Initialisation des valeurs minimales et maximales pour les années de création et de sortie des premiers albums
-	minCreationYear = Artists[0].YearStarted
+	minCreationYear = Artists[0].CreationDate
 	maxCreationYear = Artists[0].YearStarted
-	minFirstAlbumYear = Artists[0].DebutAlbum.Year()
+	minFirstAlbumYear = Artists[0].FirstAlbum()
 	maxFirstAlbumYear = Artists[0].DebutAlbum.Year()
 
 	// Initialisation des emplacements de concerts disponibles
