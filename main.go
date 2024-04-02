@@ -547,11 +547,11 @@ func artistMatchesFilters(artist Artist, filter saveFilter) bool {
 		return false
 	}
 
-	if filter.CreationRange > 0 && (float64(artist.YearStarted) < filter.CreationRange || float64(artist.YearStarted) > filter.CreationRange) {
+	if filter.CreationRange > 0 && float64(artist.YearStarted) < filter.CreationRange {
 		return false
 	}
 
-	if filter.FirstAlbumRange > 0 && (float64(artist.DebutAlbum.Year()) < filter.FirstAlbumRange || float64(artist.DebutAlbum.Year()) > filter.FirstAlbumRange) {
+	if filter.FirstAlbumRange > 0 && float64(artist.DebutAlbum.Year()) < filter.FirstAlbumRange {
 		return false
 	}
 	return true
