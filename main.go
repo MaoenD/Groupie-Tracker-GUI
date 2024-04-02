@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"groupie-tracker-gui/Functions"
+	"image/color"
+	"log"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"groupie-tracker-gui/Functions"
-	"image/color"
-	"log"
 )
 
 /********************************************************************************/
@@ -25,7 +26,7 @@ func main() {
 	myWindow := myApp.NewWindow("Menu - Groupie Tracker")
 
 	// Charger l'icône de l'application
-	logoApp, _ := fyne.LoadResourceFromPath("public/logo.png")
+	logoApp, _ := fyne.LoadResourceFromPath("public/img/logo.png")
 
 	// Définir l'icône de la fenêtre
 	myWindow.SetIcon(logoApp)
@@ -77,7 +78,7 @@ func main() {
 	searchResultCountLabel := widget.NewLabel("")
 
 	// Créer un bouton pour afficher le logo
-	logoButton := widget.NewButtonWithIcon("", (Functions.LoadImageResource("public/logo.png")), func() {
+	logoButton := widget.NewButtonWithIcon("", (Functions.LoadImageResource("public/img/logo.png")), func() {
 		// Rafraîchir le contenu de la recherche
 		Functions.RefreshContent(searchBar, searchResultCountLabel, artistsContainer, Functions.Artists, myApp)
 	})

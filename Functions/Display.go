@@ -2,14 +2,15 @@ package Functions
 
 import (
 	"fmt"
+	"image/color"
+	"strconv"
+	"strings"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"image/color"
-	"strconv"
-	"strings"
 )
 
 /********************************************************************************/
@@ -43,17 +44,17 @@ func CreateCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 	var likeButton *widget.Button
 	var likeIcon string
 	if artist.Favorite {
-		likeIcon = "public/likeOn.ico"
+		likeIcon = "public/img/likeOn.ico"
 	} else {
-		likeIcon = "public/likeOff.ico"
+		likeIcon = "public/img/likeOff.ico"
 	}
 
 	likeButton = widget.NewButton("", func() {
 		artist.Favorite = !artist.Favorite
 		if artist.Favorite {
-			likeButton.SetIcon(LoadImageResource("public/likeOn.ico"))
+			likeButton.SetIcon(LoadImageResource("public/img/likeOn.ico"))
 		} else {
-			likeButton.SetIcon(LoadImageResource("public/likeOff.ico"))
+			likeButton.SetIcon(LoadImageResource("public/img/likeOff.ico"))
 		}
 	})
 
@@ -140,7 +141,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				scrollContainer.Add(artistButton)
 			} else {
 				// Vérifier si le texte de recherche correspond à l'année de commencement de l'artiste
-				if strconv.Itoa(artist.CreationDate) == text {
+				if strconv.Itoa(artist.YearStarted) == text {
 					// Incrémenter le compteur et ajouter un bouton d'artiste avec l'année de commencement au conteneur de défilement
 					count++
 					artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
@@ -185,17 +186,18 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 
 				// Vérifier si le texte de recherche correspond à un lieu de concert dans les prochains concerts de l'artiste
 				for _, concert := range artist.NextConcerts {
-					if strings.Contains(strings.ToLower(concert.Location), strings.ToLower(text)) {
-						// Incrémenter le compteur et ajouter un bouton d'artiste avec le lieu du concert au conteneur de défilement
-						count++
-						artistButton := widget.NewButton(artist.Name+" (Concert Location: "+concert.Location+")", func(a Artist) func() {
-							return func() {
-								SecondPage(a, myApp)
-							}
-						}(artist))
-						artistButton.Importance = widget.LowImportance
-						scrollContainer.Add(artistButton)
-						break
+					for _, location := range concert.Locations {
+						if strings.Contains(strings.ToLower(location), strings.ToLower(text)) {
+							count++
+							artistButton := widget.NewButton(artist.Name+" (Concert Location: "+location+")", func(a Artist) func() {
+								return func() {
+									SecondPage(a, myApp)
+								}
+							}(artist))
+							artistButton.Importance = widget.LowImportance
+							scrollContainer.Add(artistButton)
+							break
+						}
 					}
 				}
 			}
@@ -232,7 +234,7 @@ func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 			// Vérifier si le nom de l'artiste, l'année de commencement, l'année de l'album de début, le nom d'un membre ou le lieu d'un concert correspond au texte de recherche
 			if strings.Contains(strings.ToLower(artist.Name), searchText) ||
 				strconv.Itoa(artist.YearStarted) == searchText ||
-				strconv.Itoa(artist.DebutAlbum.Year()) == searchText ||
+				strconv.Itoa(artist.FirstAlbum.Year()) == searchText ||
 				checkMemberName(artist.Members, searchText) ||
 				checkConcertLocation(artist.NextConcerts, searchText) {
 				// Ajouter l'artiste à la liste des artistes trouvés
@@ -303,7 +305,7 @@ func artistMatchesFilters(artist Artist, filter saveFilter) bool {
 	}
 
 	// Vérifier si l'année de sortie du premier album de l'artiste est dans la plage sélectionnée par l'utilisateur
-	if filter.FirstAlbumRange > 0 && float64(artist.DebutAlbum.Year()) < filter.FirstAlbumRange {
+	if filter.FirstAlbumRange > 0 && float64(artist.FirstAlbum.Year()) < filter.FirstAlbumRange {
 		return false
 	}
 	return true
@@ -312,8 +314,10 @@ func artistMatchesFilters(artist Artist, filter saveFilter) bool {
 func artistHasConcertLocation(artist Artist, location string) bool {
 	// Vérifier si l'artiste a un concert à l'emplacement spécifié
 	for _, concert := range artist.NextConcerts {
-		if strings.EqualFold(concert.Location, location) { // Vérifier sans tenir compte de la casse
-			return true
+		for _, loc := range concert.Locations {
+			if strings.EqualFold(loc, location) { // Vérifier sans tenir compte de la casse
+				return true
+			}
 		}
 	}
 	return false

@@ -2,17 +2,18 @@ package Functions
 
 import (
 	"fmt"
+	"strings"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"strings"
 )
 
 func CreateBlockContent() fyne.CanvasObject {
 	// Chemin de l'image à charger
-	imagePath := "public/world_map1.jpg"
+	imagePath := "public/img/world_map1.jpg"
 
 	// Charger l'image depuis le chemin spécifié
 	image := canvas.NewImageFromFile(imagePath)
@@ -306,7 +307,7 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	myWindow := myApp.NewWindow("Information - " + artist.Name)
 
 	// Définir l'icône de la fenêtre avec le logo de l'application
-	logo, _ := fyne.LoadResourceFromPath("public/logo.png")
+	logo, _ := fyne.LoadResourceFromPath("public/img/logo.png")
 	myWindow.SetIcon(logo)
 
 	// Calculer la couleur moyenne de l'image de l'artiste
@@ -326,7 +327,7 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	// Créer des étiquettes pour afficher les informations de l'artiste
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
-	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("02-Jan-2006")))
+	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.FirstAlbum.Format("02-Jan-2006")))
 	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))
 	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Date.Format("02-Jan-2006"), artist.LastConcert.Location))
 	nextConcertLabel := widget.NewLabel("Next Concert:")
