@@ -95,7 +95,7 @@ func main() {
 		if count != 0 {
 			searchResultCountLabel.SetText(fmt.Sprintf("Results for '%s':", text))
 		} else {
-			searchResultCountLabel.SetText("No result")
+			searchResultCountLabel.SetText("")
 		}
 	}
 
@@ -121,9 +121,12 @@ func main() {
 		artistsContainer.Add(columnContainer)
 	}
 
+	blockContent := createBlockContent()
+
 	content := container.NewVBox(
 		searchBarContainer,
 		searchResults,
+		blockContent,
 		scrollContainer,
 	)
 
@@ -144,10 +147,47 @@ func main() {
 	myWindow.ShowAndRun()
 }
 
-func refreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Label, artistsContainer *fyne.Container, artists []Artist, myApp fyne.App) {
-	searchBar.SetText("") // Effacer le texte de la barre de recherche
+func createBlockContent() fyne.CanvasObject {
+	imagePath := "public/world_map1.jpg"
 
-	// Réinitialiser le contenu de artistsContainer avec les résultats de recherche initiaux
+	image := canvas.NewImageFromFile(imagePath)
+
+	if image == nil {
+		fmt.Println("Impossible de charger l'image:", imagePath)
+		return nil
+	}
+
+	image.FillMode = canvas.ImageFillStretch
+
+	blockContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil),
+		image,
+	)
+
+	button := widget.NewButton("", func() {
+		fmt.Print("Logique de map à intégrer ici")
+	})
+	button.Importance = widget.LowImportance
+	button.Resize(image.MinSize())
+
+	blockContent.Add(button)
+
+	title := widget.NewLabel("Geolocation feature")
+	description := widget.NewLabel("Find out where and when your favorite artists will be performing around the globe.")
+	description.Wrapping = fyne.TextWrapWord
+
+	textContainer := container.New(layout.NewVBoxLayout(),
+		title,
+		description,
+	)
+
+	blockContent.Add(textContainer)
+
+	return blockContent
+}
+
+func refreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Label, artistsContainer *fyne.Container, artists []Artist, myApp fyne.App) {
+	searchBar.SetText("")
+
 	artistsContainer.Objects = nil
 	for i := 0; i < len(artists); i += 3 {
 		rowContainer := container.NewHBox()
@@ -171,10 +211,8 @@ func refreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Labe
 		artistsContainer.Add(columnContainer)
 	}
 
-	// Actualiser l'affichage du contenu
 	artistsContainer.Refresh()
 
-	// Actualiser le texte du label du nombre de résultats
 	searchResultCountLabel.SetText("")
 }
 
