@@ -407,43 +407,59 @@ func generateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 			break
 		}
 
-		if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(text)) {
-			count++
-			artistButton := widget.NewButton(artist.Name, func(a Artist) func() {
-				return func() {
-					SecondPage(a, myApp)
+		if artistMatchesFilters(artist, savedFilter) {
+			if strings.Contains(strings.ToLower(artist.Name), strings.ToLower(text)) {
+				count++
+				artistButton := widget.NewButton(artist.Name, func(a Artist) func() {
+					return func() {
+						SecondPage(a, myApp)
+					}
+				}(artist))
+				artistButton.Importance = widget.LowImportance
+				scrollContainer.Add(artistButton)
+			} else {
+				if strconv.Itoa(artist.YearStarted) == text {
+					count++
+					artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
+						return func() {
+							SecondPage(a, myApp)
+						}
+					}(artist))
+					artistButton.Importance = widget.LowImportance
+					scrollContainer.Add(artistButton)
 				}
-			}(artist))
-			artistButton.Importance = widget.LowImportance
-			scrollContainer.Add(artistButton)
-		} else {
-			if strconv.Itoa(artist.YearStarted) == text {
-				count++
-				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
-					return func() {
-						SecondPage(a, myApp)
-					}
-				}(artist))
-				artistButton.Importance = widget.LowImportance
-				scrollContainer.Add(artistButton)
-			}
 
-			if strconv.Itoa(artist.DebutAlbum.Year()) == text {
-				count++
-				artistButton := widget.NewButton(artist.Name+" (Debut Album: "+strconv.Itoa(artist.DebutAlbum.Year())+")", func(a Artist) func() {
-					return func() {
-						SecondPage(a, myApp)
-					}
-				}(artist))
-				artistButton.Importance = widget.LowImportance
-				scrollContainer.Add(artistButton)
-			}
+				if strconv.Itoa(artist.DebutAlbum.Year()) == text {
+					count++
+					artistButton := widget.NewButton(artist.Name+" (Debut Album: "+strconv.Itoa(artist.DebutAlbum.Year())+")", func(a Artist) func() {
+						return func() {
+							SecondPage(a, myApp)
+						}
+					}(artist))
+					artistButton.Importance = widget.LowImportance
+					scrollContainer.Add(artistButton)
+				}
 
-			if len(artist.Members) > 1 {
-				for _, member := range artist.Members {
-					if strings.Contains(strings.ToLower(member), strings.ToLower(text)) {
+				if len(artist.Members) > 1 {
+					for _, member := range artist.Members {
+						if strings.Contains(strings.ToLower(member), strings.ToLower(text)) {
+							count++
+							artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func(a Artist) func() {
+								return func() {
+									SecondPage(a, myApp)
+								}
+							}(artist))
+							artistButton.Importance = widget.LowImportance
+							scrollContainer.Add(artistButton)
+							break
+						}
+					}
+				}
+
+				for _, concert := range artist.NextConcerts {
+					if strings.Contains(strings.ToLower(concert.Location), strings.ToLower(text)) {
 						count++
-						artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func(a Artist) func() {
+						artistButton := widget.NewButton(artist.Name+" (Concert Location: "+concert.Location+")", func(a Artist) func() {
 							return func() {
 								SecondPage(a, myApp)
 							}
@@ -452,20 +468,6 @@ func generateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 						scrollContainer.Add(artistButton)
 						break
 					}
-				}
-			}
-
-			for _, concert := range artist.NextConcerts {
-				if strings.Contains(strings.ToLower(concert.Location), strings.ToLower(text)) {
-					count++
-					artistButton := widget.NewButton(artist.Name+" (Concert Location: "+concert.Location+")", func(a Artist) func() {
-						return func() {
-							SecondPage(a, myApp)
-						}
-					}(artist))
-					artistButton.Importance = widget.LowImportance
-					scrollContainer.Add(artistButton)
-					break
 				}
 			}
 		}
@@ -480,6 +482,7 @@ func generateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 
 	return count
 }
+
 func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
 	searchText := strings.ToLower(searchBar.Text)
 
