@@ -1,4 +1,4 @@
-package main
+package Functions
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 /*********************************** DISPLAY ************************************/
 /********************************************************************************/
 
-func createCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
+func CreateCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 	// Chargement de l'image de l'artiste
 	image := canvas.NewImageFromFile(artist.Image)
 	image.FillMode = canvas.ImageFillContain
@@ -51,14 +51,14 @@ func createCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 	likeButton = widget.NewButton("", func() {
 		artist.Favorite = !artist.Favorite
 		if artist.Favorite {
-			likeButton.SetIcon(loadImageResource("public/likeOn.ico"))
+			likeButton.SetIcon(LoadImageResource("public/likeOn.ico"))
 		} else {
-			likeButton.SetIcon(loadImageResource("public/likeOff.ico"))
+			likeButton.SetIcon(LoadImageResource("public/likeOff.ico"))
 		}
 	})
 
 	// Charger l'icône initiale du bouton en fonction de l'état initial du favori
-	likeButton.SetIcon(loadImageResource(likeIcon))
+	likeButton.SetIcon(LoadImageResource(likeIcon))
 
 	// Création du conteneur des boutons
 	buttonsContainer := container.NewHBox(
@@ -106,7 +106,7 @@ func createCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 	return cardContent
 }
 
-func generateSearchSuggestions(text string, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App, limit int) int {
+func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App, limit int) int {
 	// Effacer les objets précédents du conteneur de défilement
 	scrollContainer.Objects = nil
 
@@ -206,7 +206,7 @@ func generateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 	if count < len(artists) && count >= limit {
 		// Ajouter un bouton "Plus de résultats" pour charger davantage de résultats
 		showMoreButton := widget.NewButton("More results", func() {
-			generateSearchSuggestions(text, scrollContainer, artists, myApp, limit+5)
+			GenerateSearchSuggestions(text, scrollContainer, artists, myApp, limit+5)
 		})
 		scrollContainer.Add(showMoreButton)
 	}
@@ -215,7 +215,7 @@ func generateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 	return count
 }
 
-func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
+func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
 	// Convertir le texte de recherche en minuscules pour une recherche insensible à la casse
 	searchText := strings.ToLower(searchBar.Text)
 
@@ -254,7 +254,7 @@ func recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 			rowContainer.Add(space)
 			rowContainer.Add(space)
 			for j := i; j < i+3 && j < len(foundArtists); j++ {
-				card := createCardGeneralInfo(foundArtists[j], myApp)
+				card := CreateCardGeneralInfo(foundArtists[j], myApp)
 				rowContainer.Add(card)
 
 				if j < i+2 && j < len(foundArtists) {

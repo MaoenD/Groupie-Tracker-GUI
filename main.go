@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"groupie-tracker-gui/Functions"
 	"image/color"
 )
 
@@ -46,7 +47,7 @@ func main() {
 	// Créer un bouton de recherche
 	searchButton := widget.NewButton("Search", func() {
 		// Exécuter la fonction de recherche avec les paramètres appropriés
-		recherche(searchBar, artistsContainer, artists, myApp)
+		Functions.Recherche(searchBar, artistsContainer, Functions.Artists, myApp)
 
 		// Effacer le texte de la zone de recherche après la recherche
 		searchBar.SetText("")
@@ -56,15 +57,15 @@ func main() {
 	searchResultCountLabel := widget.NewLabel("")
 
 	// Créer un bouton pour afficher le logo
-	logoButton := widget.NewButtonWithIcon("", (loadImageResource("public/logo.png")), func() {
+	logoButton := widget.NewButtonWithIcon("", (Functions.LoadImageResource("public/logo.png")), func() {
 		// Rafraîchir le contenu de la recherche
-		refreshContent(searchBar, searchResultCountLabel, artistsContainer, artists, myApp)
+		Functions.RefreshContent(searchBar, searchResultCountLabel, artistsContainer, Functions.Artists, myApp)
 	})
 
 	// Créer un bouton pour filtrer les résultats de recherche
 	filterButton := widget.NewButton("Filtrer", func() {
 		// Exécuter la fonction de filtrage
-		Filter(myApp)
+		Functions.Filter(myApp)
 	})
 
 	// Créer un conteneur pour organiser la zone de recherche et les boutons associés
@@ -83,7 +84,7 @@ func main() {
 	// Définir l'action à effectuer lorsque le contenu de la zone de recherche change
 	searchBar.OnChanged = func(text string) {
 		// Générer des suggestions de recherche basées sur le texte saisi
-		count := generateSearchSuggestions(text, searchResults, artists, myApp, 5)
+		count := Functions.GenerateSearchSuggestions(text, searchResults, Functions.Artists, myApp, 5)
 
 		// Mettre à jour l'étiquette de comptage des résultats de recherche
 		if count != 0 {
@@ -94,7 +95,7 @@ func main() {
 	}
 
 	// Organiser les artistes en cartes dans des conteneurs de lignes et de colonnes
-	for i := 0; i < len(artists); i += 3 {
+	for i := 0; i < len(Functions.Artists); i += 3 {
 		rowContainer := container.NewHBox()
 		columnContainer := container.NewVBox()
 
@@ -104,11 +105,11 @@ func main() {
 		rowContainer.Add(space)
 		rowContainer.Add(space)
 
-		for j := i; j < i+3 && j < len(artists); j++ {
-			card := createCardGeneralInfo(artists[j], myApp)
+		for j := i; j < i+3 && j < len(Functions.Artists); j++ {
+			card := Functions.CreateCardGeneralInfo(Functions.Artists[j], myApp)
 			rowContainer.Add(card)
 
-			if j < i+2 && j < len(artists) {
+			if j < i+2 && j < len(Functions.Artists) {
 				rowContainer.Add(space)
 			}
 		}
@@ -118,7 +119,7 @@ func main() {
 	}
 
 	// Créer le contenu de bloc
-	blockContent := createBlockContent()
+	blockContent := Functions.CreateBlockContent()
 
 	// Créer le contenu de la fenêtre
 	content := container.NewVBox(

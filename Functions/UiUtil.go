@@ -1,4 +1,4 @@
-package main
+package Functions
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func createBlockContent() fyne.CanvasObject {
+func CreateBlockContent() fyne.CanvasObject {
 	// Chemin de l'image à charger
 	imagePath := "public/world_map1.jpg"
 
@@ -61,7 +61,7 @@ func createBlockContent() fyne.CanvasObject {
 	return blockContent
 }
 
-func refreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Label, artistsContainer *fyne.Container, artists []Artist, myApp fyne.App) {
+func RefreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Label, artistsContainer *fyne.Container, artists []Artist, myApp fyne.App) {
 	// Réinitialiser le texte de la barre de recherche
 	searchBar.SetText("")
 
@@ -82,7 +82,7 @@ func refreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Labe
 
 		// Parcourir les artistes pour créer les cartes d'artiste dans la ligne actuelle
 		for j := i; j < i+3 && j < len(artists); j++ {
-			card := createCardGeneralInfo(artists[j], myApp) // Créer une carte d'artiste pour l'artiste actuel
+			card := CreateCardGeneralInfo(artists[j], myApp) // Créer une carte d'artiste pour l'artiste actuel
 			rowContainer.Add(card)                           // Ajouter la carte à la ligne
 
 			// Ajouter un espace entre les cartes si ce n'est pas la dernière carte dans la ligne
@@ -113,15 +113,15 @@ func Filter(myApp fyne.App) {
 
 func initializeFilters(myApp fyne.App) {
 	// Initialisation des valeurs minimales et maximales pour les années de création et de sortie des premiers albums
-	minCreationYear = artists[0].YearStarted
-	maxCreationYear = artists[0].YearStarted
-	minFirstAlbumYear = artists[0].DebutAlbum.Year()
-	maxFirstAlbumYear = artists[0].DebutAlbum.Year()
+	minCreationYear = Artists[0].YearStarted
+	maxCreationYear = Artists[0].YearStarted
+	minFirstAlbumYear = Artists[0].DebutAlbum.Year()
+	maxFirstAlbumYear = Artists[0].DebutAlbum.Year()
 
 	// Initialisation des emplacements de concerts disponibles
 	concertLocations = make([]string, 0)
 	locationsMap := make(map[string]bool)
-	for _, artist := range artists {
+	for _, artist := range Artists {
 		// Mise à jour des valeurs minimales et maximales pour les années de création
 		if artist.YearStarted < minCreationYear {
 			minCreationYear = artist.YearStarted

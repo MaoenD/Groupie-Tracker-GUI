@@ -1,4 +1,4 @@
-package main
+package Functions
 
 import (
 	"fmt"
@@ -76,7 +76,7 @@ func getAverageColor(imagePath string) color.Color {
 	return averageColor
 }
 
-func loadImageResource(path string) fyne.Resource {
+func LoadImageResource(path string) fyne.Resource {
 	// Charger une ressource (image) à partir du chemin spécifié
 	image, err := fyne.LoadResourceFromPath(path)
 	// Vérifier s'il y a eu une erreur lors du chargement de l'image
