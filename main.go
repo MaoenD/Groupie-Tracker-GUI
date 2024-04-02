@@ -172,7 +172,7 @@ func main() {
 		if count != 0 {
 			searchResultCountLabel.SetText(fmt.Sprintf("Results for '%s':", text))
 		} else {
-			searchResultCountLabel.SetText("")
+			searchResultCountLabel.SetText("No result")
 		}
 	}
 
@@ -449,6 +449,7 @@ func initializeFilters(myApp fyne.App) {
 		radioSoloGroup.SetSelected(selectedRadioValue)
 		numMembersCheck.SetSelected(selectedNumMembers)
 		locationsSelect.SetSelected(selectedLocationValue)
+		applyFilter()
 	})
 
 	applyButton := widget.NewButton("Apply Filters", func() {
@@ -519,6 +520,9 @@ func applyFilter() saveFilter {
 
 	// Afficher les valeurs sélectionnées dans la console
 	fmt.Printf("Radio sélectionné: %s, Membres sélectionnés: %v, Localisation sélectionnée: %s, savedCreationRange: %f, savedFirstAlbumRange: %f\n", selectedRadioValue, selectedNumMembers, selectedLocationValue, savedCreationRange, savedFirstAlbumRange)
+
+	// Réinitialiser la sélection de l'emplacement lors de l'application du filtre
+	selectedLocationValue = "" // Réinitialisation de la sélection de l'emplacement
 
 	return savedFilter // Retourner les filtres sauvegardés
 }
