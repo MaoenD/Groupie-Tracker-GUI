@@ -29,35 +29,35 @@ func LoadArtists(url string) ([]Artist, error) {
 }
 
 func LoadLocations(url string) ([]Location, error) {
-	var locations []Location
+	var apiResponse APIResponse // Modifiez ici
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&locations)
+	err = json.NewDecoder(resp.Body).Decode(&apiResponse) // Modifiez ici
 	if err != nil {
 		return nil, err
 	}
 
-	return locations, nil
+	return apiResponse.Index, nil // Modifiez ici
 }
 
-func LoadRelations(url string) (Relation, error) {
-	var relation Relation
+func LoadRelations(url string) ([]Relation, error) {
+	var relations []Relation
 	resp, err := http.Get(url)
 	if err != nil {
-		return Relation{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&relation)
+	err = json.NewDecoder(resp.Body).Decode(&relations)
 	if err != nil {
-		return Relation{}, err
+		return nil, err
 	}
 
-	return relation, nil
+	return relations, nil
 }
 
 func LoadDate(url string) ([]Dates, error) {
@@ -89,7 +89,7 @@ func CombineData(locationsURL, relationsURL string) ([]Concert, error) {
 	}
 
 	// Fetch relation
-	relation, err := LoadRelations(relationsURL)
+	relations, err := LoadRelations(relationsURL)
 	if err != nil {
 		return nil, err
 	}
@@ -99,15 +99,18 @@ func CombineData(locationsURL, relationsURL string) ([]Concert, error) {
 
 	// Mapping des locations avec les dates
 	for _, location := range locations {
-		for loc, dates := range relation.DatesLocations {
-
-			if contains(location.Locations, loc) {
-				concert := Concert{
-					ID:        location.ID,
-					Locations: loc,
-					Dates:     dates,
+		for _, rel := range relations { // Modifiez ici
+			for loc, dates := range rel.DatesLocations { // Modifiez ici
+				if contains(location.Locations, loc) {
+					// Créer un slice contenant le lieu actuel
+					locSlice := []string{loc}
+					concert := Concert{
+						ID:        location.ID,
+						Locations: locSlice, // Assigner le slice contenant le lieu
+						Dates:     dates,
+					}
+					concerts = append(concerts, concert)
 				}
-				concerts = append(concerts, concert)
 			}
 		}
 	}

@@ -2,80 +2,53 @@ package Functions
 
 import (
 	"fmt"
-	"image"
-	"image/color"
-	"os"
+	"math"
 	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 )
 
 /********************************************************************************/
 /************************************* OUTIL ************************************/
 /********************************************************************************/
-func getAverageColor(imagePath string) color.Color {
-	// Ouvrir le fichier image
-	file, err := os.Open(imagePath)
-	if err != nil {
-		fmt.Println("Erreur lors de l'ouverture du fichier:", err)
-		return color.Black
-	}
-	defer file.Close()
 
-	// Décoder l'image
-	img, _, err := image.Decode(file)
-	if err != nil {
-		fmt.Println("Erreur lors du décodage de l'image:", err)
-		return color.Black
-	}
+func getAverageColor(img *canvas.Image) (r, g, b, a uint32) {
+	width := int(img.MinSize().Width)
+	height := int(img.MinSize().Height)
+	var totalR, totalG, totalB, totalA uint64
 
-	// Initialiser les variables pour les composantes de couleur totales et le nombre total de pixels
-	var totalRed, totalGreen, totalBlue float64
-	totalPixels := 0
-
-	// Parcourir tous les pixels de l'image
-	bounds := img.Bounds()
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			// Obtenir la couleur du pixel
-			pixelColor := img.At(x, y)
-			r, g, b, _ := pixelColor.RGBA()
-
-			// Convertir les composantes de couleur en valeurs flottantes normalisées
-			red := float64(r) / 65535.0
-			green := float64(g) / 65535.0
-			blue := float64(b) / 65535.0
-
-			// Ajouter les composantes de couleur aux totaux
-			totalRed += red
-			totalGreen += green
-			totalBlue += blue
-
-			// Incrémenter le nombre total de pixels
-			totalPixels++
+	// Parcours de tous les pixels de l'image pour calculer la somme des composantes de couleur
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			colorRGBA := img.Image.At(x, y)
+			r, g, b, a := colorRGBA.RGBA()
+			totalR += uint64(r >> 8)
+			totalG += uint64(g >> 8)
+			totalB += uint64(b >> 8)
+			totalA += uint64(a >> 8)
 		}
 	}
 
-	// Calculer les moyennes des composantes de couleur
-	averageRed := totalRed / float64(totalPixels)
-	averageGreen := totalGreen / float64(totalPixels)
-	averageBlue := totalBlue / float64(totalPixels)
+	// Calcul des moyennes arrondies
+	pixelCount := uint64(width * height)
+	r = uint32(totalR / pixelCount)
+	g = uint32(totalG / pixelCount)
+	b = uint32(totalB / pixelCount)
+	a = uint32(totalA / pixelCount)
 
-	// Mettre à l'échelle les valeurs de couleur moyennes à l'échelle de 0 à 255
-	averageRed = averageRed * 255
-	averageGreen = averageGreen * 255
-	averageBlue = averageBlue * 255
-
-	// Créer une couleur moyenne avec les composantes de couleur calculées
-	averageColor := color.RGBA{
-		R: uint8(averageRed),
-		G: uint8(averageGreen),
-		B: uint8(averageBlue),
-		A: 255,
+	// Vérifier si la moyenne des composantes de couleur est proche de 255
+	maxComponent := uint32(255)
+	tolerance := uint32(50) // Valeur de tolérance pour ajuster la couleur
+	if r >= maxComponent-tolerance && g >= maxComponent-tolerance && b >= maxComponent-tolerance {
+		// Réduire la composante rouge, verte et bleue pour éviter le blanc pur
+		r = uint32(math.Max(0, float64(r)-float64(tolerance)))
+		g = uint32(math.Max(0, float64(g)-float64(tolerance)))
+		b = uint32(math.Max(0, float64(b)-float64(tolerance)))
 	}
 
-	return averageColor
+	return r, g, b, a
 }
 
 func LoadImageResource(path string) fyne.Resource {
@@ -107,8 +80,10 @@ func checkConcertLocation(concerts []Concert, searchText string) bool {
 	// Parcourir chaque concert dans la liste
 	for _, concert := range concerts {
 		// Vérifier si le lieu du concert contient le texte de recherche (ignorer la casse)
-		if strings.Contains(strings.ToLower(concert.Location), searchText) {
-			return true // Retourner true si une correspondance est trouvée
+		for _, location := range concert.Locations {
+			if strings.Contains(strings.ToLower(string(location)), searchText) {
+				return true // Retourner true si une correspondance est trouvée
+			}
 		}
 	}
 	return false // Retourner false si aucune correspondance n'est trouvée
@@ -128,4 +103,44 @@ const layoutDate = "02-01-2006"
 
 func parseFirstAlbumDate(albumDate string) (time.Time, error) {
 	return time.Parse(layoutDate, albumDate)
+}
+
+// UpdateArtistConcertInfo met à jour les informations sur les concerts de l'artiste en fonction des dates de concert fournies
+func UpdateArtistConcertInfo(artist *Artist, concertDates []string, locations []Location) {
+	// Initialise la variable pour stocker les détails du dernier concert
+	var lastConcertDetails Concert
+
+	// Parcourir les dates de concert pour trouver les concerts de l'artiste
+	for _, date := range concertDates {
+		// Convertir la date de chaîne à l'objet time.Time
+		concertDate, err := time.Parse("02-01-2006", date) // Assurez-vous que le format correspond à celui des dates de concert dans les données
+		if err != nil {
+			// Gérer l'erreur si la date ne peut pas être analysée
+			fmt.Println("Erreur lors de l'analyse de la date:", err)
+			continue
+		}
+
+		// Parcourir les emplacements pour vérifier si l'artiste a joué à un concert à cette date
+		for _, location := range locations {
+			for _, eventDate := range location.DatesURL {
+				// Convertir la date de chaîne à l'objet time.Time
+				parsedEventDate, err := time.Parse("02-01-2006", string(eventDate)) // Assurez-vous que le format correspond à celui des dates de concert dans les données
+				if err != nil {
+					// Gérer l'erreur si la date ne peut pas être analysée
+					fmt.Println("Erreur lors de l'analyse de la date de l'événement:", err)
+					continue
+				}
+
+				// Vérifier si la date de concert correspond à la date de l'événement et si l'artiste a joué à cet endroit
+				if parsedEventDate.Equal(concertDate) {
+					// L'artiste a joué à cet endroit à la date du concert, mettre à jour les détails du dernier concert
+					lastConcertDetails.Locations = append(lastConcertDetails.Locations, location.Locations...)
+					lastConcertDetails.Dates = append(lastConcertDetails.Dates, string(eventDate))
+				}
+			}
+		}
+	}
+
+	// Mettre à jour les informations du dernier concert de l'artiste
+	artist.LastConcert = lastConcertDetails
 }

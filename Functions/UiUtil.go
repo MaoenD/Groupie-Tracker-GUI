@@ -2,7 +2,10 @@ package Functions
 
 import (
 	"fmt"
+	"image/color"
+	"io"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -184,9 +187,11 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 		}
 		// Recherche des emplacements de concerts uniques
 		for _, concert := range concerts {
-			if _, found := locationsMap[concert.Locations]; !found {
-				concertLocations = append(concertLocations, concert.Locations)
-				locationsMap[concert.Locations] = true
+			// Concaténer les emplacements de concert en une seule chaîne
+			locationStr := strings.Join(concert.Locations, ", ")
+			if _, found := locationsMap[locationStr]; !found {
+				concertLocations = append(concertLocations, locationStr)
+				locationsMap[locationStr] = true
 			}
 		}
 	}
@@ -355,19 +360,37 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	logo, _ := fyne.LoadResourceFromPath("public/img/logo.png")
 	myWindow.SetIcon(logo)
 
-	// Calculer la couleur moyenne de l'image de l'artiste
-	averageColor := getAverageColor(artist.Image)
-
-	// Créer un rectangle de fond avec la couleur moyenne calculée
-	background := canvas.NewRectangle(averageColor)
-	background.SetMinSize(fyne.NewSize(300, 300))
-	background.Resize(fyne.NewSize(296, 296))
-
 	// Charger l'image de l'artiste et la redimensionner pour l'affichage
-	image := canvas.NewImageFromFile(artist.Image)
+	response, err := http.Get(artist.Image)
+	if err != nil {
+		log.Println("Failed to load image:", err)
+	}
+	defer response.Body.Close()
+
+	// Lire les données de l'image
+	imageData, err := io.ReadAll(response.Body)
+	if err != nil {
+		// Gérer l'erreur lors de la lecture des données de l'image
+		log.Println("Failed to read image data:", err)
+	}
+
+	// Obtenir le type de fichier de l'image à partir de l'URL
+	parts := strings.Split(artist.Image, ".")
+	fileType := parts[len(parts)-1]
+
+	// Créer une image à partir des données lues et du type de fichier
+	image := canvas.NewImageFromReader(strings.NewReader(string(imageData)), fileType)
+
 	image.FillMode = canvas.ImageFillContain
 	image.SetMinSize(fyne.NewSize(320, 320))
 	image.Resize(fyne.NewSize(220, 220))
+
+	// Calculer la moyenne de la couleur de l'image
+	r, _, b, a := getAverageColor(image)
+
+	// Créer un rectangle avec la couleur moyenne comme couleur de fond
+	backgroundRect := canvas.NewRectangle(color.RGBA{uint8(r), uint8(r), uint8(b), uint8(a)})
+	backgroundRect.Resize(backgroundRect.MinSize())
 
 	// Créer des étiquettes pour afficher les informations de l'artiste
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
@@ -403,20 +426,23 @@ func SecondPage(artist Artist, myApp fyne.App) {
 
 	// Créer un conteneur pour organiser les informations de l'artiste
 	infoContainer := container.NewVBox(
-		image,            // Ajout de l'image
-		nameLabel,        // Ajout du nom
-		yearLabel,        // Ajout de l'année de commencement
-		debutAlbumLabel,  // Ajout de la date de l'album
-		membersLabel,     // Ajout des noms des membres
-		lastConcertLabel, // Ajout de la date du dernier concert
-		nextConcertLabel, // Ajout du label du prochain concert
+		image,            // Ajouter l'image
+		nameLabel,        // Ajouter le nom
+		yearLabel,        // Ajouter l'année de commencement
+		debutAlbumLabel,  // Ajouter la date de l'album
+		membersLabel,     // Ajouter les noms des membres
+		lastConcertLabel, // Ajouter la date du dernier concert
+		nextConcertLabel, // Ajouter le label du prochain concert
 	)
 
 	// Définir une taille fixe pour le conteneur d'informations
 	infoContainer.Resize(fyne.NewSize(300, 200))
 
 	// Créer un conteneur pour la carte de l'artiste avec le rectangle de fond et le conteneur d'informations
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background, infoContainer)
+	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil),
+		backgroundRect, // Ajouter le rectangle de fond en tant qu'arrière-plan
+		infoContainer,  // Ajouter le conteneur d'informations
+	)
 	cardContent.Resize(fyne.NewSize(300, 300))
 
 	// Définir le contenu de la fenêtre et l'afficher au centre de l'écran
