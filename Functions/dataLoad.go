@@ -3,6 +3,7 @@ package Functions
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -29,35 +30,69 @@ func LoadArtists(url string) ([]Artist, error) {
 }
 
 func LoadLocations(url string) ([]Location, error) {
-	var apiResponse APIResponse
+	var response json.RawMessage
+	var locationResponse LocationResponse
+	var locations []Location
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&apiResponse)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	return apiResponse.Index, nil
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("Failed to unmarshal to RawMessage: %v", err)
+		return nil, err
+	}
+
+	// Attempt to unmarshal into RelationsResponse struct
+	err = json.Unmarshal(response, &locationResponse)
+	if err != nil {
+		log.Printf("Unexpected data format, not an object as expected: %v", err)
+	} else {
+		locations = locationResponse.Index
+	}
+
+	return locations, nil
 }
 
 func LoadRelations(url string) ([]Relation, error) {
-	var apiResponse RelationsResponse
+	var response json.RawMessage
+	var relationsResponse RelationsResponse
+	var relations []Relation
+
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&apiResponse)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	return apiResponse.Index, nil
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		log.Printf("Failed to unmarshal to RawMessage: %v", err)
+		return nil, err
+	}
+
+	// Attempt to unmarshal into RelationsResponse struct
+	err = json.Unmarshal(response, &relationsResponse)
+	if err != nil {
+		log.Printf("Unexpected data format, not an object as expected: %v", err)
+	} else {
+		relations = relationsResponse.Index
+	}
+
+	return relations, nil
 }
 
 func LoadDate(url string) ([]Dates, error) {

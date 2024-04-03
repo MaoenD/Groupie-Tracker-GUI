@@ -16,6 +16,10 @@ type RelationsResponse struct {
 	Index []Relation `json:"index"`
 }
 
+type LocationResponse struct {
+	Index []Location `json:"index"`
+}
+
 type Concert struct {
 	ID        int      `json:"id"`
 	Locations []string `json:"locations"`

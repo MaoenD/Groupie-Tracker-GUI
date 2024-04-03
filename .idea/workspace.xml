@@ -6,8 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="11b2b682-5e00-4673-8e67-d0edbb78d715" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions/Display.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/Display.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions/UiUtil.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/UiUtil.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/Struct.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/Struct.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/Tool.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/Tool.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/dataLoad.go" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/dataLoad.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,7 +54,7 @@
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/dorge/Desktop/Groupie-master/Groupie-Tracker-GUI",
+    "last_opened_file_path": "C:/Users/dorge/Desktop/Groupie-master",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "settings.editor.selected.configurable": "preferences.pluginManager"
@@ -91,5 +92,16 @@
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/main.go</url>
+          <line>21</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
