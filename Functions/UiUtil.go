@@ -351,10 +351,6 @@ func applyFilter() saveFilter {
 		CreationRange:      savedCreationRange,
 		FirstAlbumRange:    savedFirstAlbumRange,
 	}
-
-	// Print the selected values to the console
-	fmt.Printf("Radio selected: %s, Selected members: %v, Selected location: %s, savedCreationRange: %f, savedFirstAlbumRange: %f\n", selectedRadioValue, selectedNumMembers, selectedLocationValue, savedCreationRange, savedFirstAlbumRange)
-
 	// Reset the location selection when applying the filter
 	selectedLocationValue = "" // Reset location selection
 
