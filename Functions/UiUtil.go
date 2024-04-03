@@ -13,6 +13,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var CreationDateRange *widget.Slider
@@ -383,7 +385,9 @@ func SecondPage(artist Artist, relation Relation, myApp fyne.App) {
 	concertInfo := container.NewVBox()
 	for location, dates := range relation.DatesLocations {
 		for _, date := range dates {
-			concertLabel := widget.NewLabel(fmt.Sprintf("Location: %s, Date: %s", location, date))
+			formattedLocation := formatLocation(location)
+			formattedDate := formatDate(date)
+			concertLabel := widget.NewLabel(fmt.Sprintf("🗺️Location: %s    📅Date: %s", formattedLocation, formattedDate))
 			concertInfo.Add(concertLabel)
 		}
 	}
@@ -402,4 +406,31 @@ func SecondPage(artist Artist, relation Relation, myApp fyne.App) {
 
 	myWindow.SetContent(content)
 	myWindow.Show()
+}
+
+func formatLocation(location string) string {
+	// Supprimer les tirets et les underscores
+	location = strings.ReplaceAll(location, "_", " ")
+	// Mettre la première lettre de chaque mot en majuscule
+	titleCase := cases.Title(language.English)
+	location = titleCase.String(location)
+
+	// Trouver le nom du pays après le premier tiret
+	parts := strings.Split(location, "-")
+	if len(parts) > 1 {
+		// Ajouter le nom du pays entre parenthèses
+		location = fmt.Sprintf("%s (%s)", parts[0], parts[1])
+	}
+
+	return location
+}
+
+// Fonction pour formater la date
+func formatDate(date string) string {
+	// Convertir le format "DD-MM-YYYY" en "JJ/MM/AAAA"
+	parts := strings.Split(date, "-")
+	if len(parts) != 3 {
+		return date // Retourner la date telle quelle si le format est incorrect
+	}
+	return fmt.Sprintf("%s/%s/%s", parts[0], parts[1], parts[2])
 }
