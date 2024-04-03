@@ -123,7 +123,7 @@ func Filter(myApp fyne.App) {
 	}
 
 	// Fetch location data (assuming this returns data relevant for the filter, e.g., concert locations)
-	concerts, err := CombineData("https://groupietrackers.herokuapp.com/api/locations", "https://groupietrackers.herokuapp.com/api/relations")
+	concerts, err := CombineData("https://groupietrackers.herokuapp.com/api/locations", "https://groupietrackers.herokuapp.com/api/relation")
 	if err != nil {
 		log.Printf("Failed to load locations: %v", err)
 		return // Exit if there was an error fetching the location data
