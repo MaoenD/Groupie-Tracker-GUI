@@ -100,11 +100,12 @@ func CombineData(locationsURL, relationsURL string) ([]Concert, error) {
 	// Mapping des locations avec les dates
 	for _, location := range locations {
 		for loc, dates := range relation.DatesLocations {
-
 			if contains(location.Locations, loc) {
+				// Créer un slice contenant le lieu actuel
+				locSlice := []string{loc}
 				concert := Concert{
 					ID:        location.ID,
-					Locations: loc,
+					Locations: locSlice, // Assigner le slice contenant le lieu
 					Dates:     dates,
 				}
 				concerts = append(concerts, concert)

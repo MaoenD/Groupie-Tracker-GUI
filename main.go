@@ -38,11 +38,11 @@ func main() {
 	}
 	fmt.Printf("Loaded %d artists\n", len(artists))
 
-	locations, err := Functions.LoadLocations("https://groupietrackers.herokuapp.com/api/locations")
+	/* locations, err := Functions.LoadLocations("https://groupietrackers.herokuapp.com/api/locations")
 	if err != nil {
 		log.Fatalf("Failed to load locations: %v", err)
 	}
-	fmt.Printf("Loaded locations for %d artists\n", len(locations))
+	fmt.Printf("Loaded locations for %d artists\n", len(locations)) */
 
 	// Créer une zone de recherche avec un champ de texte
 	searchBar := widget.NewEntry()

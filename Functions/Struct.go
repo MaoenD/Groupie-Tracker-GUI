@@ -9,9 +9,9 @@ import (
 /************************************ TYPES *************************************/
 /********************************************************************************/
 type Concert struct {
-	ID        int `json:"id"`
-	Locations string
-	Dates     []string
+	ID        int      `json:"id"`
+	Locations []string `json:"locations"`
+	Dates     []string `json:"dates"`
 }
 
 type Artist struct {
@@ -48,9 +48,10 @@ type Dates struct {
 }
 
 type Location struct {
-	ID        int      `json:"id"`
-	Locations []string `json:"locations"`
-	DatesURL  string   `json:"dates"`
+	ID        int                    `json:"id"`
+	Locations []string               `json:"locations"`
+	DatesURL  string                 `json:"dates"`
+	ExtraInfo map[string]interface{} `json:"-"`
 }
 
 /********************************************************************************/

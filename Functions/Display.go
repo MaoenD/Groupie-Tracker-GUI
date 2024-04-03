@@ -3,6 +3,8 @@ package Functions
 import (
 	"fmt"
 	"image/color"
+	"io"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -18,25 +20,42 @@ import (
 /********************************************************************************/
 
 func CreateCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
-	// Chargement de l'image de l'artiste
-	image := canvas.NewImageFromFile(artist.Image)
+	response, err := http.Get(artist.Image)
+	if err != nil {
+		fmt.Println("Failed to load image:", err)
+		return nil
+	}
+	defer response.Body.Close()
+
+	// Lire les données de l'image
+	imageData, err := io.ReadAll(response.Body)
+	if err != nil {
+		// Gérer l'erreur lors de la lecture des données de l'image
+		fmt.Println("Failed to read image data:", err)
+		return nil
+	}
+
+	// Obtenir le type de fichier de l'image à partir de l'URL
+	parts := strings.Split(artist.Image, ".")
+	fileType := parts[len(parts)-1]
+
+	// Créer une image à partir des données lues et du type de fichier
+	image := canvas.NewImageFromReader(strings.NewReader(string(imageData)), fileType)
+
 	image.FillMode = canvas.ImageFillContain
 	image.SetMinSize(fyne.NewSize(120, 120))
 	image.Resize(fyne.NewSize(120, 120))
 
-	// Calcul de la couleur moyenne de l'image
-	averageColor := getAverageColor(artist.Image)
+	r, g, b, a := getAverageColor(image)
 
 	// Création du fond avec la couleur moyenne
-	background := canvas.NewRectangle(averageColor)
+	background := canvas.NewRectangle(color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)})
 	background.SetMinSize(fyne.NewSize(300, 300))
 	background.Resize(fyne.NewSize(296, 296))
 	background.CornerRadius = 20
 
 	// Création du bouton "Plus d'informations"
 	button := widget.NewButton("          Plus d'informations          ", func() {
-		fmt.Println(artist.Name)
-		fmt.Print("Affiche toutes les informations de l'artiste (nouvelle page)")
 		SecondPage(artist, myApp)
 	})
 
@@ -191,7 +210,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				for _, location := range concert.Locations {
 					if strings.Contains(strings.ToLower(string(location)), strings.ToLower(text)) {
 						count++
-						artistButton := widget.NewButton(artist.Name+" (Concert Location: "+location+")", func(a Artist) func() {
+						artistButton := widget.NewButton(artist.Name+" (Concert Location: "+string(location)+")", func(a Artist) func() {
 							return func() {
 								SecondPage(a, myApp)
 							}
@@ -237,7 +256,7 @@ func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 				strconv.Itoa(artist.YearStarted) == searchText ||
 				strings.Contains(artist.FirstAlbum, searchText) || // Adjusted for string comparison
 				checkMemberName(artist.Members, searchText) ||
-				checkConcertLocation(artist.NextConcerts, searchText) {
+				checkConcertLocation(artist.NextConcerts, searchText) { // Adjusted to use artist.NextConcerts
 				// Ajouter l'artiste à la liste des artistes trouvés
 				foundArtists = append(foundArtists, artist)
 			}
