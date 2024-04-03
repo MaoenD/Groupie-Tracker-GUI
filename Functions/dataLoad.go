@@ -95,27 +95,6 @@ func LoadRelations(url string) ([]Relation, error) {
 	return relations, nil
 }
 
-func LoadDate(url string) ([]Dates, error) {
-	var dates []Dates
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(body, &dates)
-	if err != nil {
-		return nil, err
-	}
-
-	return dates, nil
-}
-
 func CombineData(locationsURL, relationsURL string) ([]Concert, error) {
 	// Fetch location
 	locations, err := LoadLocations(locationsURL)
