@@ -133,7 +133,7 @@ func main() {
 	})
 
 	// Créer un bouton pour filtrer les résultats de recherche
-	filterButton := widget.NewButton("Filtrer", func() {
+	filterButton := widget.NewButton("Filter", func() {
 		// Exécuter la fonction de filtrage
 		Functions.Filter(myApp)
 	})
