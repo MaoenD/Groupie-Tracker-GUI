@@ -110,6 +110,22 @@ func RefreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Labe
 	searchResultCountLabel.SetText("")
 }
 
+// Fonction mock pour simuler CombineData
+/* func mockCombineData() ([]Concert, error) {
+	// Créer des données fictives pour les concerts
+	concerts := []Concert{
+		{
+			ID:        1,
+			Locations: []string{"New York", "Los Angeles"},
+		},
+		{
+			ID:        2,
+			Locations: []string{"London", "Paris"},
+		},
+	}
+	return concerts, nil
+}
+
 func Filter(myApp fyne.App) {
 	// Vérifie si la fenêtre des filtres est déjà ouverte
 	if myWindow != nil {
@@ -122,12 +138,70 @@ func Filter(myApp fyne.App) {
 		return // Exit if there was an error fetching the artist data
 	}
 
-	// Fetch location data (assuming this returns data relevant for the filter, e.g., concert locations)
+	// Utilisez la fonction de mock pour simuler les données des concerts
+	concerts, err := mockCombineData()
+	if err != nil {
+		log.Printf("Failed to load locations: %v", err)
+		return // Exit if there was an error fetching the location data
+	}
+	// Initialise les filtres de l'application
+	initializeFilters(myApp, artists, concerts)
+} */
+
+/* func Filter(myApp fyne.App) {
+	// Vérifie si la fenêtre des filtres est déjà ouverte
+	if myWindow != nil {
+		// Ferme la fenêtre des filtres si elle est ouverte
+		myWindow.Close()
+	}
+
+	// Charger les données des artistes
+	artists, err := LoadArtists("https://groupietrackers.herokuapp.com/api/artists")
+	if err != nil {
+		log.Printf("Failed to load artists: %v", err)
+		return // Exit if there was an error fetching the artist data
+	}
+
+	// Charger les données des concerts
 	concerts, err := CombineData("https://groupietrackers.herokuapp.com/api/locations", "https://groupietrackers.herokuapp.com/api/relations")
 	if err != nil {
 		log.Printf("Failed to load locations: %v", err)
 		return // Exit if there was an error fetching the location data
 	}
+
+	// Initialise les filtres de l'application
+	initializeFilters(myApp, artists, concerts)
+} */
+
+/* func Filter(myApp fyne.App) {
+	// Vérifie si la fenêtre des filtres est déjà ouverte
+	if myWindow != nil {
+		// Ferme la fenêtre des filtres si elle est ouverte
+		myWindow.Close()
+	}
+	// Initialise les filtres de l'application
+	initializeFilters(myApp, artists, concerts)
+} */
+
+func Filter(myApp fyne.App, locationsURL, relationsURL string) {
+	// Vérifie si la fenêtre des filtres est déjà ouverte
+	if myWindow != nil {
+		// Ferme la fenêtre des filtres si elle est ouverte
+		myWindow.Close()
+	}
+	artists, err := LoadArtists("https://groupietrackers.herokuapp.com/api/artists")
+	if err != nil {
+		log.Printf("Failed to load artists: %v", err)
+		return // Exit if there was an error fetching the artist data
+	}
+
+	// Utilisation de CombineData pour obtenir les concerts
+	concerts, err := CombineData(locationsURL, relationsURL)
+	if err != nil {
+		log.Printf("Failed to combine data: %v", err)
+		return // Exit if there was an error combining the data
+	}
+
 	// Initialise les filtres de l'application
 	initializeFilters(myApp, artists, concerts)
 }

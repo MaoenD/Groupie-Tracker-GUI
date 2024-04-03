@@ -82,34 +82,54 @@ func LoadDate(url string) ([]Dates, error) {
 }
 
 func CombineData(locationsURL, relationsURL string) ([]Concert, error) {
-	// Fetch location
-	locations, err := LoadLocations(locationsURL)
+	// Charger les données des artistes
+	artists, err := LoadArtists("https://groupietrackers.herokuapp.com/api/artists")
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch relation
+	// Charger les données des relations
 	relations, err := LoadRelations(relationsURL)
 	if err != nil {
 		return nil, err
 	}
 
-	// Initialisation d'une slice pour contenir les infos
+	// Charger les données des emplacements
+	locations, err := LoadLocations(locationsURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Créer une carte pour mapper les ID des artistes avec leurs emplacements
+	artistLocations := make(map[int][]string)
+	for _, location := range locations {
+		artistLocations[location.ID] = location.Locations
+	}
+
+	// Initialisation d'une slice pour contenir les concerts
 	var concerts []Concert
 
-	// Mapping des locations avec les dates
-	for _, location := range locations {
-		for _, rel := range relations { // Modifiez ici
-			for loc, dates := range rel.DatesLocations { // Modifiez ici
-				if contains(location.Locations, loc) {
-					// Créer un slice contenant le lieu actuel
-					locSlice := []string{loc}
-					concert := Concert{
-						ID:        location.ID,
-						Locations: locSlice, // Assigner le slice contenant le lieu
-						Dates:     dates,
+	// Parcours des relations et création des concerts
+	for _, rel := range relations {
+		for _, artist := range artists {
+			if artist.ID == rel.ID { // Vérification de l'ID de l'artiste dans les relations
+				// Vérifier si l'artiste a des concerts
+				if dates, found := rel.DatesLocations[artist.Name]; found {
+					// Parcours des dates pour créer les concerts
+					for _, date := range dates {
+						// Récupérer les emplacements de chaque artiste à partir de la liste des emplacements
+						locations, ok := artistLocations[artist.ID]
+						if !ok {
+							continue // Si aucun emplacement trouvé pour l'artiste, passer au suivant
+						}
+
+						concert := Concert{
+							ID:        artist.ID,
+							Locations: locations, // Utilisation des emplacements de l'artiste
+							Dates:     []string{date},
+						}
+						concerts = append(concerts, concert)
 					}
-					concerts = append(concerts, concert)
 				}
 			}
 		}

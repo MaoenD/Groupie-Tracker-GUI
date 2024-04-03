@@ -132,11 +132,33 @@ func main() {
 
 	})
 
+	locationsURL := "https://groupietrackers.herokuapp.com/api/locations"
+	relationsURL := "https://groupietrackers.herokuapp.com/api/relation"
+
 	// Créer un bouton pour filtrer les résultats de recherche
 	filterButton := widget.NewButton("Filter", func() {
 		// Exécuter la fonction de filtrage
-		Functions.Filter(myApp)
+		Functions.Filter(myApp, locationsURL, relationsURL)
 	})
+
+	concerts, err := Functions.CombineData("https://groupietrackers.herokuapp.com/api/locations", "https://groupietrackers.herokuapp.com/api/relation")
+	if err != nil {
+		log.Fatalf("Failed to combine data: %v", err)
+	}
+
+	// Imprimer les détails de chaque concert
+	for _, concert := range concerts {
+		fmt.Printf("ID: %d\n", concert.ID)
+		fmt.Println("Locations:")
+		for _, loc := range concert.Locations {
+			fmt.Println(loc)
+		}
+		fmt.Println("Dates:")
+		for _, date := range concert.Dates {
+			fmt.Println(date)
+		}
+		fmt.Println("---")
+	}
 
 	// Créer un conteneur pour organiser la zone de recherche et les boutons associés
 	searchBarContainer := container.NewVBox(
