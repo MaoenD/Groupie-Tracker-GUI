@@ -1,8 +1,6 @@
 package Functions
 
 import (
-	"time"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/widget"
 )
@@ -11,11 +9,9 @@ import (
 /************************************ TYPES *************************************/
 /********************************************************************************/
 type Concert struct {
-	ID        int      `json:"id"`
-	Locations []string `json:"locations"`
-	DatesURL  string   `json:"dates"`
-	Date      time.Time
-	Location  string
+	ID        int `json:"id"`
+	Locations string
+	Dates     []string
 }
 
 type Artist struct {
@@ -43,7 +39,7 @@ type saveFilter struct {
 
 type Relation struct {
 	ID             int                 `json:"id"`
-	DatesLocations map[string][]string `json:"datesLocations"`
+	DatesLocations map[string][]string `json:"datesLocations"` // Map venue/location to dates
 }
 
 type Dates struct {
@@ -52,8 +48,9 @@ type Dates struct {
 }
 
 type Location struct {
-	ID       int    `json:"id"`
-	Location string `json:"location"`
+	ID        int      `json:"id"`
+	Locations []string `json:"locations"` // This might represent venues within a location
+	DatesURL  string   `json:"dates"`     // URL to fetch dates
 }
 
 /********************************************************************************/

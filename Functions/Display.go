@@ -189,7 +189,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 			// Vérifier si le texte de recherche correspond à un lieu de concert dans les prochains concerts de l'artiste
 			for _, concert := range artist.NextConcerts {
 				for _, location := range concert.Locations {
-					if strings.Contains(strings.ToLower(location), strings.ToLower(text)) {
+					if strings.Contains(strings.ToLower(string(location)), strings.ToLower(text)) {
 						count++
 						artistButton := widget.NewButton(artist.Name+" (Concert Location: "+location+")", func(a Artist) func() {
 							return func() {
@@ -319,7 +319,7 @@ func artistHasConcertLocation(artist Artist, location string) bool {
 	// Vérifier si l'artiste a un concert à l'emplacement spécifié
 	for _, concert := range artist.NextConcerts {
 		for _, loc := range concert.Locations {
-			if strings.EqualFold(loc, location) { // Vérifier sans tenir compte de la casse
+			if strings.EqualFold(string(loc), location) { // Vérifier sans tenir compte de la casse
 				return true
 			}
 		}

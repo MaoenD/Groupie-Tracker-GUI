@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -119,7 +120,7 @@ func Filter(myApp fyne.App) {
 	}
 
 	// Fetch location data (assuming this returns data relevant for the filter, e.g., concert locations)
-	concerts, err := LoadRelations("https://groupietrackers.herokuapp.com/api/locations")
+	concerts, err := CombineData("https://groupietrackers.herokuapp.com/api/locations", "https://groupietrackers.herokuapp.com/api/relations")
 	if err != nil {
 		log.Printf("Failed to load locations: %v", err)
 		return // Exit if there was an error fetching the location data
@@ -183,9 +184,9 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 		}
 		// Recherche des emplacements de concerts uniques
 		for _, concert := range concerts {
-			if _, found := locationsMap[concert.Location]; !found {
-				concertLocations = append(concertLocations, concert.Location)
-				locationsMap[concert.Location] = true
+			if _, found := locationsMap[concert.Locations]; !found {
+				concertLocations = append(concertLocations, concert.Locations)
+				locationsMap[concert.Locations] = true
 			}
 		}
 	}
@@ -373,12 +374,21 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
 	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.FirstAlbum))
 	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))
-	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Date, artist.LastConcert.Location))
+	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Dates, artist.LastConcert.Locations))
 	nextConcertLabel := widget.NewLabel("Next Concert:")
 
 	// Vérifier s'il y a un prochain concert et l'afficher s'il y en a un
-	if len(artist.NextConcerts) > 0 {
-		nextConcertLabel.Text += fmt.Sprintf(" %s - %s", artist.NextConcerts[0].Date.Format("02-Jan-2006"), artist.NextConcerts[0].Location)
+	if len(artist.NextConcerts) > 0 && len(artist.NextConcerts[0].Dates) > 0 {
+		dateStr := artist.NextConcerts[0].Dates[0]           // Take the first date string
+		parsedDate, err := time.Parse("02-01-2006", dateStr) // Adjust the layout as necessary
+		if err != nil {
+			// Handle parsing error
+			fmt.Println("Error parsing date:", err)
+			nextConcertLabel.Text += " Error in date format"
+		} else {
+			formattedDate := parsedDate.Format("02-Jan-2006")
+			nextConcertLabel.Text += fmt.Sprintf(" %s - %s", formattedDate, artist.NextConcerts[0].Locations)
+		}
 	} else {
 		nextConcertLabel.Text += " No upcoming concerts" // Affichage si aucun événement à venir
 	}

@@ -44,18 +44,6 @@ func main() {
 	}
 	fmt.Printf("Loaded locations for %d artists\n", len(locations))
 
-	relations, err := Functions.LoadRelations("https://groupietrackers.herokuapp.com/api/relation")
-	if err != nil {
-		log.Fatalf("Failed to load relations: %v", err)
-	}
-	fmt.Printf("Loaded relations for %d artists\n", len(relations))
-
-	dates, err := Functions.LoadRelations("https://groupietrackers.herokuapp.com/api/dates")
-	if err != nil {
-		log.Fatalf("Failed to load relations: %v", err)
-	}
-	fmt.Printf("Loaded relations for %d artists\n", len(dates))
-
 	// Créer une zone de recherche avec un champ de texte
 	searchBar := widget.NewEntry()
 	searchBar.SetPlaceHolder("Search Artists...")

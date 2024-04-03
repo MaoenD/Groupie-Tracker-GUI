@@ -29,43 +29,37 @@ func LoadArtists(url string) ([]Artist, error) {
 }
 
 func LoadLocations(url string) ([]Location, error) {
-	var location []Location
+	var locations []Location
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	err = json.NewDecoder(resp.Body).Decode(&locations)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(body, &location)
-	if err != nil {
-		return nil, err
-	}
-
-	return location, nil
+	return locations, nil
 }
 
-func LoadRelations(url string) ([]Concert, error) {
-	var concerts []Concert
+func LoadRelations(url string) (Relation, error) {
+	var relation Relation
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return Relation{}, err
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&concerts)
+	err = json.NewDecoder(resp.Body).Decode(&relation)
 	if err != nil {
-		return nil, err
+		return Relation{}, err
 	}
 
-	return concerts, nil
+	return relation, nil
 }
 
-// coucou
 func LoadDate(url string) ([]Dates, error) {
 	var dates []Dates
 	resp, err := http.Get(url)
@@ -85,4 +79,38 @@ func LoadDate(url string) ([]Dates, error) {
 	}
 
 	return dates, nil
+}
+
+func CombineData(locationsURL, relationsURL string) ([]Concert, error) {
+	// Fetch location
+	locations, err := LoadLocations(locationsURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch relation
+	relation, err := LoadRelations(relationsURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialisation d'une slice pour contenir les infos
+	var concerts []Concert
+
+	// Map relation dates to locations
+	for _, location := range locations {
+		for loc, dates := range relation.DatesLocations {
+
+			if contains(location.Locations, loc) {
+				concert := Concert{
+					ID:        location.ID,
+					Locations: loc,
+					Dates:     dates,
+				}
+				concerts = append(concerts, concert)
+			}
+		}
+	}
+
+	return concerts, nil
 }
