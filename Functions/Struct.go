@@ -49,8 +49,8 @@ type Dates struct {
 
 type Location struct {
 	ID        int      `json:"id"`
-	Locations []string `json:"locations"` // This might represent venues within a location
-	DatesURL  string   `json:"dates"`     // URL to fetch dates
+	Locations []string `json:"locations"`
+	DatesURL  string   `json:"dates"`
 }
 
 /********************************************************************************/

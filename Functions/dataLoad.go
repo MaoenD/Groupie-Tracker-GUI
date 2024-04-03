@@ -97,7 +97,7 @@ func CombineData(locationsURL, relationsURL string) ([]Concert, error) {
 	// Initialisation d'une slice pour contenir les infos
 	var concerts []Concert
 
-	// Map relation dates to locations
+	// Mapping des locations avec les dates
 	for _, location := range locations {
 		for loc, dates := range relation.DatesLocations {
 
