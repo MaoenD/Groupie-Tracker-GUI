@@ -353,12 +353,8 @@ func applyFilter() saveFilter {
 func SecondPage(artist Artist, relation Relation, myApp fyne.App) {
 	myWindow := myApp.NewWindow("Information - " + artist.Name)
 
-	logo, err := fyne.LoadResourceFromURLString("https://developer.fyne.io/img/fyne-logo.png")
-	if err != nil {
-		log.Println("Error loading logo:", err)
-	} else {
-		myWindow.SetIcon(logo)
-	}
+	logo, _ := fyne.LoadResourceFromPath("public/img/logo.png")
+	myWindow.SetIcon(logo)
 
 	response, err := http.Get(artist.Image)
 	if err != nil {
