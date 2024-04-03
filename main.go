@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"groupie-tracker-gui/Functions"
+	"groupie-tracker-gui/Functions" // Import custom functions package
 
 	"image/color"
 	"log"
@@ -15,71 +15,48 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-/********************************************************************************/
-/************************************* MAIN *************************************/
-/********************************************************************************/
+var artistRelations Functions.Relation // Declare variable outside loop
 
 func main() {
-	// Créer une nouvelle application
+	// Create a new application
 	myApp := app.New()
 
-	// Créer une nouvelle fenêtre avec le titre "Menu - Groupie Tracker"
+	// Create a new window with the title "Menu - Groupie Tracker"
 	myWindow := myApp.NewWindow("Menu - Groupie Tracker")
 
-	// Charger l'icône de l'application
+	// Load the application icon
 	logoApp, _ := fyne.LoadResourceFromPath("public/img/logo.png")
 
-	// Définir l'icône de la fenêtre
+	// Set the window icon
 	myWindow.SetIcon(logoApp)
 
-	// Charger les données des artistes, des lieux et des relations
+	// Load artist, location, and relation data
 	artists, err := Functions.LoadArtists("https://groupietrackers.herokuapp.com/api/artists")
 	if err != nil {
 		log.Fatalf("Failed to load artists: %v", err)
 	}
-	fmt.Printf("Loaded %d artists\n", len(artists))
-
-	locations, err := Functions.LoadLocations("https://groupietrackers.herokuapp.com/api/locations")
-	if err != nil {
-		log.Fatalf("Failed to load locations: %v", err)
-	}
-	fmt.Printf("Loaded locations for %d artists\n", len(locations))
-
-	// Itérer sur chaque élément de la slice locations
-	/* for _, location := range locations {
-		fmt.Printf("Artist ID: %d\n", location.ID)
-		fmt.Println("Locations:")
-		for _, loc := range location.Locations {
-			fmt.Println(loc)
-		}
-		fmt.Println("Dates:", location.DatesURL)
-		fmt.Println("---")
-	} */
 
 	relations, err := Functions.LoadRelations("https://groupietrackers.herokuapp.com/api/relation")
 	if err != nil {
 		log.Fatalf("Failed to load relations: %v", err)
 	}
-	fmt.Printf("Loaded %d relations\n", len(relations))
 
-	// Créer une zone de recherche avec un champ de texte
+	// Create a search area with a text field
 	searchBar := widget.NewEntry()
 	searchBar.SetPlaceHolder("Search Artists...")
 	searchBar.Resize(fyne.NewSize(1080, searchBar.MinSize().Height))
 
-	// Créer une boîte pour afficher les résultats de recherche
+	// Create a box to display search results
 	searchResults := container.NewVBox()
 
-	// Créer une boîte pour contenir les artistes
+	// Create a box to contain artists
 	artistsContainer := container.NewVBox()
 
-	// Créer un conteneur de défilement pour les artistes
+	// Create a scroll container for artists
 	scrollContainer := container.NewVScroll(artistsContainer)
 	scrollContainer.SetMinSize(fyne.NewSize(1080, 720))
 
-	var artistRelations Functions.Relation // Déclaration de la variable en dehors de la boucle
-
-	// Organiser les artistes en cartes dans des conteneurs de lignes et de colonnes
+	// Organize artists into cards within rows and columns
 	for i := 0; i < len(artists); i += 3 {
 		rowContainer := container.NewHBox()
 		columnContainer := container.NewVBox()
@@ -90,9 +67,9 @@ func main() {
 		rowContainer.Add(space)
 		rowContainer.Add(space)
 
-		// Itérer sur chaque groupe de 3 artistes
+		// Iterate over each group of 3 artists
 		for j := i; j < i+3 && j < len(artists); j++ {
-			// Trouver la relation correspondante pour l'artiste actuel
+			// Find corresponding relation for the current artist
 			for _, rel := range relations {
 				if rel.ID == artists[j].ID {
 					artistRelations = rel
@@ -100,7 +77,7 @@ func main() {
 				}
 			}
 
-			// Créer la carte pour l'artiste avec la relation correspondante
+			// Create artist card with corresponding relation
 			card := Functions.CreateCardGeneralInfo(artists[j], artistRelations, myApp)
 			rowContainer.Add(card)
 
@@ -113,32 +90,31 @@ func main() {
 		artistsContainer.Add(columnContainer)
 	}
 
-	// Créer un bouton de recherche
+	// Create a search button
 	searchButton := widget.NewButton("Search", func() {
-		// Exécuter la fonction de recherche avec les paramètres appropriés
+		// Execute search function with appropriate parameters
 		Functions.Recherche(searchBar, artistsContainer, artists, artistRelations, myApp)
 
-		// Effacer le texte de la zone de recherche après la recherche
+		// Clear search bar text after search
 		searchBar.SetText("")
 	})
 
-	// Créer une étiquette pour afficher le nombre de résultats de recherche
+	// Create a label to display search result count
 	searchResultCountLabel := widget.NewLabel("")
 
-	// Créer un bouton pour afficher le logo
+	// Create a button to display the logo
 	logoButton := widget.NewButtonWithIcon("", (Functions.LoadImageResource("public/img/logo.png")), func() {
-		// Rafraîchir le contenu de la recherche
+		// Refresh search content
 		Functions.RefreshContent(searchBar, searchResultCountLabel, artistsContainer, artistRelations, artists, myApp)
-
 	})
 
-	// Créer un bouton pour filtrer les résultats de recherche
+	// Create a button to filter search results
 	filterButton := widget.NewButton("Filter", func() {
-		// Exécuter la fonction de filtrage
+		// Execute filtering function
 		Functions.Filter(myApp)
 	})
 
-	// Créer un conteneur pour organiser la zone de recherche et les boutons associés
+	// Create a container to organize search area and associated buttons
 	searchBarContainer := container.NewVBox(
 		container.NewBorder(nil, nil, logoButton, filterButton, searchBar),
 		searchButton,
@@ -146,17 +122,17 @@ func main() {
 	)
 	searchBarContainer.Resize(searchBarContainer.MinSize())
 
-	// Définir l'action à effectuer lorsque la touche "Entrée" est pressée dans la zone de recherche
+	// Define action when "Enter" key is pressed in search area
 	searchBar.OnSubmitted = func(_ string) {
 		searchButton.OnTapped()
 	}
 
-	// Définir l'action à effectuer lorsque le contenu de la zone de recherche change
+	// Define action when content in search area changes
 	searchBar.OnChanged = func(text string) {
-		// Générer des suggestions de recherche basées sur le texte saisi
+		// Generate search suggestions based on entered text
 		count := Functions.GenerateSearchSuggestions(text, searchResults, artists, artistRelations, myApp, 5)
 
-		// Mettre à jour l'étiquette de comptage des résultats de recherche
+		// Update search result count label
 		if count != 0 {
 			searchResultCountLabel.SetText(fmt.Sprintf("Results for '%s':", text))
 		} else {
@@ -164,10 +140,10 @@ func main() {
 		}
 	}
 
-	// Créer le contenu de bloc
+	// Create block content
 	blockContent := Functions.CreateBlockContent()
 
-	// Créer le contenu de la fenêtre
+	// Create window content
 	content := container.NewVBox(
 		searchBarContainer,
 		searchResults,
@@ -175,27 +151,27 @@ func main() {
 		scrollContainer,
 	)
 
-	// Définir la disposition dynamique pour le contenu
+	// Set dynamic layout for content
 	dynamicLayout := layout.NewVBoxLayout()
 	content.Layout = dynamicLayout
 
-	// Centrer le contenu dans un conteneur
+	// Center content within a container
 	centeredContent := container.New(layout.NewCenterLayout(), content)
 
-	// Créer un arrière-plan rectangulaire
+	// Create a rectangular background
 	background := canvas.NewRectangle(color.NRGBA{R: 0x5C, G: 0x64, B: 0x73, A: 0xFF})
 	background.Resize(fyne.NewSize(1080, 720))
 
-	// Créer un conteneur pour l'arrière-plan avec une disposition de bordure
+	// Create a container for the background with border layout
 	backgroundContainer := container.New(layout.NewBorderLayout(nil, nil, nil, nil), background)
 
-	// Ajouter le contenu centré à l'arrière-plan
+	// Add centered content to the background
 	backgroundContainer.Add(centeredContent)
 
-	// Définir le contenu de la fenêtre
+	// Set window content
 	myWindow.SetContent(backgroundContainer)
 	myWindow.Resize(fyne.NewSize(1080, 720))
 
-	// Afficher la fenêtre et exécuter l'application
+	// Show and run the window
 	myWindow.ShowAndRun()
 }

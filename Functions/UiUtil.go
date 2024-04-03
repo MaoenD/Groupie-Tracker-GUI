@@ -21,7 +21,7 @@ var CreationDateRange *widget.Slider
 
 func CreateBlockContent() fyne.CanvasObject {
 	// Chemin de l'image à charger
-	imagePath := "public/img/world_map1.jpg"
+	imagePath := "public/img/world_map.jpg"
 
 	// Charger l'image depuis le chemin spécifié
 	image := canvas.NewImageFromFile(imagePath)
