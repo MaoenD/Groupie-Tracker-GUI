@@ -38,11 +38,22 @@ func main() {
 	}
 	fmt.Printf("Loaded %d artists\n", len(artists))
 
-	/* locations, err := Functions.LoadLocations("https://groupietrackers.herokuapp.com/api/locations")
+	locations, err := Functions.LoadLocations("https://groupietrackers.herokuapp.com/api/locations")
 	if err != nil {
 		log.Fatalf("Failed to load locations: %v", err)
 	}
-	fmt.Printf("Loaded locations for %d artists\n", len(locations)) */
+	fmt.Printf("Loaded locations for %d artists\n", len(locations))
+
+	// Itérer sur chaque élément de la slice locations
+	for _, location := range locations {
+		fmt.Printf("Artist ID: %d\n", location.ID)
+		fmt.Println("Locations:")
+		for _, loc := range location.Locations {
+			fmt.Println(loc)
+		}
+		fmt.Println("Dates:", location.DatesURL)
+		fmt.Println("---")
+	}
 
 	// Créer une zone de recherche avec un champ de texte
 	searchBar := widget.NewEntry()

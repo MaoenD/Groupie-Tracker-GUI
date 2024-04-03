@@ -105,12 +105,42 @@ func parseFirstAlbumDate(albumDate string) (time.Time, error) {
 	return time.Parse(layoutDate, albumDate)
 }
 
-/* func loadImage(filePath string) fyne.CanvasObject {
-	image := canvas.NewImageFromFile(filePath)
-	if image == nil {
-		// Gérer l'erreur de chargement de l'image ici
-		// Vous pouvez journaliser l'erreur ou afficher un message à l'utilisateur
-		return nil
+// UpdateArtistConcertInfo met à jour les informations sur les concerts de l'artiste en fonction des dates de concert fournies
+func UpdateArtistConcertInfo(artist *Artist, concertDates []string, locations []Location) {
+	// Initialise la variable pour stocker les détails du dernier concert
+	var lastConcertDetails Concert
+
+	// Parcourir les dates de concert pour trouver les concerts de l'artiste
+	for _, date := range concertDates {
+		// Convertir la date de chaîne à l'objet time.Time
+		concertDate, err := time.Parse("02-01-2006", date) // Assurez-vous que le format correspond à celui des dates de concert dans les données
+		if err != nil {
+			// Gérer l'erreur si la date ne peut pas être analysée
+			fmt.Println("Erreur lors de l'analyse de la date:", err)
+			continue
+		}
+
+		// Parcourir les emplacements pour vérifier si l'artiste a joué à un concert à cette date
+		for _, location := range locations {
+			for _, eventDate := range location.DatesURL {
+				// Convertir la date de chaîne à l'objet time.Time
+				parsedEventDate, err := time.Parse("02-01-2006", string(eventDate)) // Assurez-vous que le format correspond à celui des dates de concert dans les données
+				if err != nil {
+					// Gérer l'erreur si la date ne peut pas être analysée
+					fmt.Println("Erreur lors de l'analyse de la date de l'événement:", err)
+					continue
+				}
+
+				// Vérifier si la date de concert correspond à la date de l'événement et si l'artiste a joué à cet endroit
+				if parsedEventDate.Equal(concertDate) {
+					// L'artiste a joué à cet endroit à la date du concert, mettre à jour les détails du dernier concert
+					lastConcertDetails.Locations = append(lastConcertDetails.Locations, location.Locations...)
+					lastConcertDetails.Dates = append(lastConcertDetails.Dates, string(eventDate))
+				}
+			}
+		}
 	}
-	return image
-} */
+
+	// Mettre à jour les informations du dernier concert de l'artiste
+	artist.LastConcert = lastConcertDetails
+}

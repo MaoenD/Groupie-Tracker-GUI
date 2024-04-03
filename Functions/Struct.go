@@ -8,6 +8,10 @@ import (
 /********************************************************************************/
 /************************************ TYPES *************************************/
 /********************************************************************************/
+type APIResponse struct {
+	Index []Location `json:"index"`
+}
+
 type Concert struct {
 	ID        int      `json:"id"`
 	Locations []string `json:"locations"`
@@ -48,10 +52,9 @@ type Dates struct {
 }
 
 type Location struct {
-	ID        int                    `json:"id"`
-	Locations []string               `json:"locations"`
-	DatesURL  string                 `json:"dates"`
-	ExtraInfo map[string]interface{} `json:"-"`
+	ID        int      `json:"id"`
+	Locations []string `json:"locations"`
+	DatesURL  string   `json:"dates"`
 }
 
 /********************************************************************************/
