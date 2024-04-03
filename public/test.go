@@ -532,7 +532,7 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	myWindow := myApp.NewWindow("Information - " + artist.Name)
 
 	// Définir l'icône de la fenêtre avec le logo de l'application
-	logo, _ := fyne.LoadResourceFromPath("public/logo.png")
+	logo, _ := fyne.LoadResourceFromPath("public/img/logo.png")
 	myWindow.SetIcon(logo)
 
 	// Calculer la couleur moyenne de l'image de l'artiste
