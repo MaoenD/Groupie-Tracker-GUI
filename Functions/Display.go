@@ -139,65 +139,66 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				}(artist))
 				artistButton.Importance = widget.LowImportance
 				scrollContainer.Add(artistButton)
-			} else {
-				// Vérifier si le texte de recherche correspond à l'année de commencement de l'artiste
-				if strconv.Itoa(artist.YearStarted) == text {
-					// Incrémenter le compteur et ajouter un bouton d'artiste avec l'année de commencement au conteneur de défilement
-					count++
-					artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
-						return func() {
-							SecondPage(a, myApp)
-						}
-					}(artist))
-					artistButton.Importance = widget.LowImportance
-					scrollContainer.Add(artistButton)
-				}
+			}
 
-				// Vérifier si le texte de recherche correspond à l'année de l'album de début de l'artiste
-				if strconv.Itoa(artist.FirstAlbum.Year()) == text {
-					// Incrémenter le compteur et ajouter un bouton d'artiste avec l'année de l'album de début au conteneur de défilement
-					count++
-					artistButton := widget.NewButton(artist.Name+" (Debut Album: "+strconv.Itoa(artist.FirstAlbum.Year())+")", func(a Artist) func() {
-						return func() {
-							SecondPage(a, myApp)
-						}
-					}(artist))
-					artistButton.Importance = widget.LowImportance
-					scrollContainer.Add(artistButton)
-				}
+			// Vérifier si le texte de recherche correspond à l'année de commencement de l'artiste
+			if strconv.Itoa(artist.YearStarted) == text {
+				// Incrémenter le compteur et ajouter un bouton d'artiste avec l'année de commencement au conteneur de défilement
+				count++
+				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
+					return func() {
+						SecondPage(a, myApp)
+					}
+				}(artist))
+				artistButton.Importance = widget.LowImportance
+				scrollContainer.Add(artistButton)
+			}
 
-				// Vérifier s'il y a plus d'un membre dans le groupe et si le texte de recherche correspond au nom d'un membre
-				if len(artist.Members) > 1 {
-					for _, member := range artist.Members {
-						if strings.Contains(strings.ToLower(member), strings.ToLower(text)) {
-							// Incrémenter le compteur et ajouter un bouton d'artiste avec le nom du membre au conteneur de défilement
-							count++
-							artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func(a Artist) func() {
-								return func() {
-									SecondPage(a, myApp)
-								}
-							}(artist))
-							artistButton.Importance = widget.LowImportance
-							scrollContainer.Add(artistButton)
-							break
-						}
+			// Extraction des années de la string FirstAlbum au format "DD-MM-YYYY" pour comparer
+			albumYearParts := strings.Split(artist.FirstAlbum, "-")
+			if len(albumYearParts) == 3 && albumYearParts[2] == text {
+				// Incrémenter le compteur et ajouter un bouton d'artiste avec l'année de l'album de début au conteneur de défilement
+				count++
+				artistButton := widget.NewButton(artist.Name+" (Debut Album: "+albumYearParts[2]+")", func(a Artist) func() {
+					return func() {
+						SecondPage(a, myApp)
+					}
+				}(artist))
+				artistButton.Importance = widget.LowImportance
+				scrollContainer.Add(artistButton)
+			}
+
+			// Vérifier s'il y a plus d'un membre dans le groupe et si le texte de recherche correspond au nom d'un membre
+			if len(artist.Members) > 1 {
+				for _, member := range artist.Members {
+					if strings.Contains(strings.ToLower(member), strings.ToLower(text)) {
+						// Incrémenter le compteur et ajouter un bouton d'artiste avec le nom du membre au conteneur de défilement
+						count++
+						artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func(a Artist) func() {
+							return func() {
+								SecondPage(a, myApp)
+							}
+						}(artist))
+						artistButton.Importance = widget.LowImportance
+						scrollContainer.Add(artistButton)
+						break
 					}
 				}
+			}
 
-				// Vérifier si le texte de recherche correspond à un lieu de concert dans les prochains concerts de l'artiste
-				for _, concert := range artist.NextConcerts {
-					for _, location := range concert.Locations {
-						if strings.Contains(strings.ToLower(location), strings.ToLower(text)) {
-							count++
-							artistButton := widget.NewButton(artist.Name+" (Concert Location: "+location+")", func(a Artist) func() {
-								return func() {
-									SecondPage(a, myApp)
-								}
-							}(artist))
-							artistButton.Importance = widget.LowImportance
-							scrollContainer.Add(artistButton)
-							break
-						}
+			// Vérifier si le texte de recherche correspond à un lieu de concert dans les prochains concerts de l'artiste
+			for _, concert := range artist.NextConcerts {
+				for _, location := range concert.Locations {
+					if strings.Contains(strings.ToLower(location), strings.ToLower(text)) {
+						count++
+						artistButton := widget.NewButton(artist.Name+" (Concert Location: "+location+")", func(a Artist) func() {
+							return func() {
+								SecondPage(a, myApp)
+							}
+						}(artist))
+						artistButton.Importance = widget.LowImportance
+						scrollContainer.Add(artistButton)
+						break
 					}
 				}
 			}
@@ -234,7 +235,7 @@ func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 			// Vérifier si le nom de l'artiste, l'année de commencement, l'année de l'album de début, le nom d'un membre ou le lieu d'un concert correspond au texte de recherche
 			if strings.Contains(strings.ToLower(artist.Name), searchText) ||
 				strconv.Itoa(artist.YearStarted) == searchText ||
-				strconv.Itoa(artist.FirstAlbum.Year()) == searchText ||
+				strings.Contains(artist.FirstAlbum, searchText) || // Adjusted for string comparison
 				checkMemberName(artist.Members, searchText) ||
 				checkConcertLocation(artist.NextConcerts, searchText) {
 				// Ajouter l'artiste à la liste des artistes trouvés
@@ -305,8 +306,11 @@ func artistMatchesFilters(artist Artist, filter saveFilter) bool {
 	}
 
 	// Vérifier si l'année de sortie du premier album de l'artiste est dans la plage sélectionnée par l'utilisateur
-	if filter.FirstAlbumRange > 0 && float64(artist.FirstAlbum.Year()) < filter.FirstAlbumRange {
-		return false
+	if filter.FirstAlbumRange > 0 {
+		albumYear := parseYearFromAlbum(artist.FirstAlbum) // You would define this function based on your date format
+		if float64(albumYear) < filter.FirstAlbumRange {
+			return false
+		}
 	}
 	return true
 }
@@ -321,4 +325,13 @@ func artistHasConcertLocation(artist Artist, location string) bool {
 		}
 	}
 	return false
+}
+
+func parseYearFromAlbum(albumDate string) int {
+	parts := strings.Split(albumDate, "-")
+	year, err := strconv.Atoi(parts[len(parts)-1])
+	if err != nil {
+		return 0
+	}
+	return year
 }
