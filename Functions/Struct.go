@@ -12,6 +12,10 @@ type APIResponse struct {
 	Index []Location `json:"index"`
 }
 
+type RelationsResponse struct {
+	Index []Relation `json:"index"`
+}
+
 type Concert struct {
 	ID        int      `json:"id"`
 	Locations []string `json:"locations"`
@@ -43,7 +47,7 @@ type saveFilter struct {
 
 type Relation struct {
 	ID             int                 `json:"id"`
-	DatesLocations map[string][]string `json:"datesLocations"` // Map venue/location to dates
+	DatesLocations map[string][]string `json:"datesLocations"`
 }
 
 type Dates struct {

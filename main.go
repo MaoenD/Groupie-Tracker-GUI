@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"groupie-tracker-gui/Functions"
+
 	"image/color"
 	"log"
 
@@ -45,7 +46,7 @@ func main() {
 	fmt.Printf("Loaded locations for %d artists\n", len(locations))
 
 	// Itérer sur chaque élément de la slice locations
-	for _, location := range locations {
+	/* for _, location := range locations {
 		fmt.Printf("Artist ID: %d\n", location.ID)
 		fmt.Println("Locations:")
 		for _, loc := range location.Locations {
@@ -53,7 +54,13 @@ func main() {
 		}
 		fmt.Println("Dates:", location.DatesURL)
 		fmt.Println("---")
+	} */
+
+	relations, err := Functions.LoadRelations("https://groupietrackers.herokuapp.com/api/relation")
+	if err != nil {
+		log.Fatalf("Failed to load relations: %v", err)
 	}
+	fmt.Printf("Loaded %d relations\n", len(relations))
 
 	// Créer une zone de recherche avec un champ de texte
 	searchBar := widget.NewEntry()
@@ -70,10 +77,46 @@ func main() {
 	scrollContainer := container.NewVScroll(artistsContainer)
 	scrollContainer.SetMinSize(fyne.NewSize(1080, 720))
 
+	var artistRelations Functions.Relation // Déclaration de la variable en dehors de la boucle
+
+	// Organiser les artistes en cartes dans des conteneurs de lignes et de colonnes
+	for i := 0; i < len(artists); i += 3 {
+		rowContainer := container.NewHBox()
+		columnContainer := container.NewVBox()
+
+		space := widget.NewLabel("")
+
+		rowContainer.Add(space)
+		rowContainer.Add(space)
+		rowContainer.Add(space)
+
+		// Itérer sur chaque groupe de 3 artistes
+		for j := i; j < i+3 && j < len(artists); j++ {
+			// Trouver la relation correspondante pour l'artiste actuel
+			for _, rel := range relations {
+				if rel.ID == artists[j].ID {
+					artistRelations = rel
+					break
+				}
+			}
+
+			// Créer la carte pour l'artiste avec la relation correspondante
+			card := Functions.CreateCardGeneralInfo(artists[j], artistRelations, myApp)
+			rowContainer.Add(card)
+
+			if j < i+2 && j < len(artists) {
+				rowContainer.Add(space)
+			}
+		}
+
+		columnContainer.Add(rowContainer)
+		artistsContainer.Add(columnContainer)
+	}
+
 	// Créer un bouton de recherche
 	searchButton := widget.NewButton("Search", func() {
 		// Exécuter la fonction de recherche avec les paramètres appropriés
-		Functions.Recherche(searchBar, artistsContainer, artists, myApp)
+		Functions.Recherche(searchBar, artistsContainer, artists, artistRelations, myApp)
 
 		// Effacer le texte de la zone de recherche après la recherche
 		searchBar.SetText("")
@@ -85,7 +128,8 @@ func main() {
 	// Créer un bouton pour afficher le logo
 	logoButton := widget.NewButtonWithIcon("", (Functions.LoadImageResource("public/img/logo.png")), func() {
 		// Rafraîchir le contenu de la recherche
-		Functions.RefreshContent(searchBar, searchResultCountLabel, artistsContainer, artists, myApp)
+		Functions.RefreshContent(searchBar, searchResultCountLabel, artistsContainer, artistRelations, artists, myApp)
+
 	})
 
 	// Créer un bouton pour filtrer les résultats de recherche
@@ -110,7 +154,7 @@ func main() {
 	// Définir l'action à effectuer lorsque le contenu de la zone de recherche change
 	searchBar.OnChanged = func(text string) {
 		// Générer des suggestions de recherche basées sur le texte saisi
-		count := Functions.GenerateSearchSuggestions(text, searchResults, artists, myApp, 5)
+		count := Functions.GenerateSearchSuggestions(text, searchResults, artists, artistRelations, myApp, 5)
 
 		// Mettre à jour l'étiquette de comptage des résultats de recherche
 		if count != 0 {
@@ -118,30 +162,6 @@ func main() {
 		} else {
 			searchResultCountLabel.SetText("No result")
 		}
-	}
-
-	// Organiser les artistes en cartes dans des conteneurs de lignes et de colonnes
-	for i := 0; i < len(artists); i += 3 {
-		rowContainer := container.NewHBox()
-		columnContainer := container.NewVBox()
-
-		space := widget.NewLabel("")
-
-		rowContainer.Add(space)
-		rowContainer.Add(space)
-		rowContainer.Add(space)
-
-		for j := i; j < i+3 && j < len(artists); j++ {
-			card := Functions.CreateCardGeneralInfo(artists[j], myApp)
-			rowContainer.Add(card)
-
-			if j < i+2 && j < len(artists) {
-				rowContainer.Add(space)
-			}
-		}
-
-		columnContainer.Add(rowContainer)
-		artistsContainer.Add(columnContainer)
 	}
 
 	// Créer le contenu de bloc

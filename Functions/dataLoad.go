@@ -29,35 +29,35 @@ func LoadArtists(url string) ([]Artist, error) {
 }
 
 func LoadLocations(url string) ([]Location, error) {
-	var apiResponse APIResponse // Modifiez ici
+	var apiResponse APIResponse
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&apiResponse) // Modifiez ici
+	err = json.NewDecoder(resp.Body).Decode(&apiResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return apiResponse.Index, nil // Modifiez ici
+	return apiResponse.Index, nil
 }
 
 func LoadRelations(url string) ([]Relation, error) {
-	var relations []Relation
+	var apiResponse RelationsResponse
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&relations)
+	err = json.NewDecoder(resp.Body).Decode(&apiResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return relations, nil
+	return apiResponse.Index, nil
 }
 
 func LoadDate(url string) ([]Dates, error) {

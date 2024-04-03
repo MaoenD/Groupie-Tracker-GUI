@@ -2,16 +2,17 @@ package Functions
 
 import (
 	"fmt"
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
-	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
-	"fyne.io/fyne/v2/widget"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 )
 
 var CreationDateRange *widget.Slider
@@ -67,7 +68,7 @@ func CreateBlockContent() fyne.CanvasObject {
 	return blockContent
 }
 
-func RefreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Label, artistsContainer *fyne.Container, artists []Artist, myApp fyne.App) {
+func RefreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Label, artistsContainer *fyne.Container, relation Relation, artists []Artist, myApp fyne.App) {
 	// Réinitialiser le texte de la barre de recherche
 	searchBar.SetText("")
 
@@ -88,8 +89,8 @@ func RefreshContent(searchBar *widget.Entry, searchResultCountLabel *widget.Labe
 
 		// Parcourir les artistes pour créer les cartes d'artiste dans la ligne actuelle
 		for j := i; j < i+3 && j < len(artists); j++ {
-			card := CreateCardGeneralInfo(artists[j], myApp) // Créer une carte d'artiste pour l'artiste actuel
-			rowContainer.Add(card)                           // Ajouter la carte à la ligne
+			card := CreateCardGeneralInfo(artists[j], relation, myApp) // Créer une carte d'artiste pour l'artiste actuel
+			rowContainer.Add(card)                                     // Ajouter la carte à la ligne
 
 			// Ajouter un espace entre les cartes si ce n'est pas la dernière carte dans la ligne
 			if j < i+2 && j < len(artists) {

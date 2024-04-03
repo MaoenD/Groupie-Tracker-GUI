@@ -126,7 +126,7 @@ func CreateCardGeneralInfo(artist Artist, relation Relation, myApp fyne.App) fyn
 	return cardContent
 }
 
-func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App, limit int) int {
+func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, artists []Artist, relation Relation, myApp fyne.App, limit int) int {
 	// Effacer les objets précédents du conteneur de défilement
 	scrollContainer.Objects = nil
 
@@ -153,7 +153,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				count++
 				artistButton := widget.NewButton(artist.Name, func(a Artist) func() {
 					return func() {
-						SecondPage(a, myApp)
+						SecondPage(artist, relation, myApp)
 					}
 				}(artist))
 				artistButton.Importance = widget.LowImportance
@@ -166,7 +166,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				count++
 				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
 					return func() {
-						SecondPage(a, myApp)
+						SecondPage(artist, relation, myApp)
 					}
 				}(artist))
 				artistButton.Importance = widget.LowImportance
@@ -180,7 +180,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				count++
 				artistButton := widget.NewButton(artist.Name+" (Debut Album: "+albumYearParts[2]+")", func(a Artist) func() {
 					return func() {
-						SecondPage(a, myApp)
+						SecondPage(artist, relation, myApp)
 					}
 				}(artist))
 				artistButton.Importance = widget.LowImportance
@@ -195,7 +195,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 						count++
 						artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func(a Artist) func() {
 							return func() {
-								SecondPage(a, myApp)
+								SecondPage(artist, relation, myApp)
 							}
 						}(artist))
 						artistButton.Importance = widget.LowImportance
@@ -212,7 +212,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 						count++
 						artistButton := widget.NewButton(artist.Name+" (Concert Location: "+string(location)+")", func(a Artist) func() {
 							return func() {
-								SecondPage(a, myApp)
+								SecondPage(artist, relation, myApp)
 							}
 						}(artist))
 						artistButton.Importance = widget.LowImportance
@@ -223,9 +223,10 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 			}
 		}
 	}
+	return count
 }
 
-func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {
+func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, relation Relation, myApp fyne.App) {
 	// Convertir le texte de recherche en minuscules pour une recherche insensible à la casse
 	searchText := strings.ToLower(searchBar.Text)
 
@@ -264,7 +265,7 @@ func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 			rowContainer.Add(space)
 			rowContainer.Add(space)
 			for j := i; j < i+3 && j < len(foundArtists); j++ {
-				card := CreateCardGeneralInfo(foundArtists[j], myApp)
+				card := CreateCardGeneralInfo(foundArtists[j], relation, myApp)
 				rowContainer.Add(card)
 
 				if j < i+2 && j < len(foundArtists) {
