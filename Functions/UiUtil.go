@@ -17,7 +17,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-var creationDateRange *widget.Slider
+var CreationDateRange *widget.Slider
 
 func CreateBlockContent() fyne.CanvasObject {
 	// Chemin de l'image à charger
@@ -134,8 +134,8 @@ func Filter(myApp fyne.App) {
 
 func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 	// Initialisation des valeurs minimales et maximales pour les années de création et de sortie des premiers albums
-	minCreationYear := artists[0].YearStarted
-	maxCreationYear := artists[0].YearStarted
+	minCreationYear := artists[0].CreationDate
+	maxCreationYear := artists[0].CreationDate
 
 	// On asumme que le format est "DD-MM-YYYY" et converti en int
 	parseYear := func(dateStr string) int {
@@ -149,11 +149,11 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 
 	for _, artist := range artists {
 		// Mise à jour des valeurs minimales et maximales pour les années de création
-		if artist.YearStarted < minCreationYear {
-			minCreationYear = artist.YearStarted
+		if artist.CreationDate < minCreationYear {
+			minCreationYear = artist.CreationDate
 		}
-		if artist.YearStarted > maxCreationYear {
-			maxCreationYear = artist.YearStarted
+		if artist.CreationDate > maxCreationYear {
+			maxCreationYear = artist.CreationDate
 		}
 
 		// Parsing de l'année FirstAlbum de la string date
@@ -171,11 +171,11 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 	locationsMap := make(map[string]bool)
 	for _, artist := range artists {
 		// Mise à jour des valeurs minimales et maximales pour les années de création
-		if artist.YearStarted < minCreationYear {
-			minCreationYear = artist.YearStarted
+		if artist.CreationDate < minCreationYear {
+			minCreationYear = artist.CreationDate
 		}
-		if artist.YearStarted > maxCreationYear {
-			maxCreationYear = artist.YearStarted
+		if artist.CreationDate > maxCreationYear {
+			maxCreationYear = artist.CreationDate
 		}
 		// Mise à jour des valeurs minimales et maximales pour les années du premier album
 		albumYear := parseYear(artist.FirstAlbum)
@@ -197,7 +197,7 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 	}
 
 	// Création des widgets pour les filtres
-	creationDateRange = widget.NewSlider(float64(minCreationYear), float64(maxCreationYear))
+	CreationDateRange = widget.NewSlider(float64(minCreationYear), float64(maxCreationYear))
 	firstAlbumDateRange = widget.NewSlider(float64(minFirstAlbumYear), float64(maxFirstAlbumYear))
 	radioSoloGroup = widget.NewRadioGroup([]string{"Solo", "Group"}, func(selected string) {
 		if selected == "Group" {
@@ -248,12 +248,12 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 	numMembersCheck.SetSelected(selectedNumMembers)
 	locationsSelect.SetSelected(selectedLocationValue)
 	numMembersCheck.SetSelected(selectedNumMembers)
-	creationDateRange.SetValue(savedCreationRange)
+	CreationDateRange.SetValue(savedCreationRange)
 	firstAlbumDateRange.SetValue(savedFirstAlbumRange)
 	numMembersCheck.SetSelected(selectedNumMembers)
 
 	// Sauvegarde des valeurs initiales des filtres
-	savedCreationRange = creationDateRange.Value
+	savedCreationRange = CreationDateRange.Value
 	savedFirstAlbumRange = firstAlbumDateRange.Value
 	savedNumMembers = selectedNumMembers
 
@@ -268,7 +268,7 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 		selectedNumMembers = nil
 		selectedLocationValue = ""
 
-		creationDateRange.SetValue(float64(minCreationYear))
+		CreationDateRange.SetValue(float64(minCreationYear))
 		firstAlbumDateRange.SetValue(float64(minFirstAlbumYear))
 
 		radioSoloGroup.SetSelected(selectedRadioValue)
@@ -283,20 +283,20 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 	})
 
 	// Création des étiquettes pour les plages de dates de création et de sortie du premier album
-	creationDateRangeLabel := widget.NewLabel(fmt.Sprintf("Creation Date Range: %d - %d", minCreationYear, maxCreationYear))
+	CreationDateRangeLabel := widget.NewLabel(fmt.Sprintf("Creation Date Range: %d - %d", minCreationYear, maxCreationYear))
 	firstAlbumDateRangeLabel := widget.NewLabel(fmt.Sprintf("First Album Date Range: %d - %d", minFirstAlbumYear, maxFirstAlbumYear))
 
 	// Fonction de mise à jour des étiquettes des plages de dates
 	updateLabels := func() {
-		creationRange := int(creationDateRange.Value)
+		creationRange := int(CreationDateRange.Value)
 		firstAlbumRange := int(firstAlbumDateRange.Value)
 
-		creationDateRangeLabel.SetText(fmt.Sprintf("Creation Date Range: %d - %d", creationRange, maxCreationYear))
+		CreationDateRangeLabel.SetText(fmt.Sprintf("Creation Date Range: %d - %d", creationRange, maxCreationYear))
 		firstAlbumDateRangeLabel.SetText(fmt.Sprintf("First Album Date Range: %d - %d", firstAlbumRange, maxFirstAlbumYear))
 	}
 
 	// Mise à jour des étiquettes lors du changement de valeur des sliders
-	creationDateRange.OnChanged = func(value float64) {
+	CreationDateRange.OnChanged = func(value float64) {
 		updateLabels()
 	}
 
@@ -307,7 +307,7 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 	// Création du conteneur des widgets de filtres
 	filtersContainer := container.NewVBox(
 		reset,
-		creationDateRangeLabel, creationDateRange,
+		CreationDateRangeLabel, CreationDateRange,
 		firstAlbumDateRangeLabel, firstAlbumDateRange,
 		radioSoloGroup,
 		numMembersBox,
@@ -331,7 +331,7 @@ func applyFilter() saveFilter {
 	savedNumMembers = selectedNumMembers
 
 	// Enregistrer les plages de dates sélectionnées dans savedCreationRange et savedFirstAlbumRange
-	savedCreationRange = creationDateRange.Value
+	savedCreationRange = CreationDateRange.Value
 	savedFirstAlbumRange = firstAlbumDateRange.Value
 
 	// Enregistrer les valeurs sélectionnées dans savedFilter
@@ -394,7 +394,7 @@ func SecondPage(artist Artist, myApp fyne.App) {
 
 	// Créer des étiquettes pour afficher les informations de l'artiste
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
-	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
+	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.CreationDate))
 	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.FirstAlbum))
 	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))
 	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Dates, artist.LastConcert.Locations))

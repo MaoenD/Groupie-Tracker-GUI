@@ -90,7 +90,7 @@ func CreateCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 
 	// Création du label de l'année de début
-	yearLabel := widget.NewLabel(fmt.Sprintf("%d", artist.YearStarted))
+	yearLabel := widget.NewLabel(fmt.Sprintf("%d", artist.CreationDate))
 
 	// Création du conteneur pour les labels du nom et de l'année
 	labelsContainer := container.NewHBox(nameLabel, yearLabel)
@@ -161,7 +161,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 			}
 
 			// Vérifier si le texte de recherche correspond à l'année de commencement de l'artiste
-			if strconv.Itoa(artist.YearStarted) == text {
+			if strconv.Itoa(artist.CreationDate) == text {
 				// Incrémenter le compteur et ajouter un bouton d'artiste avec l'année de commencement au conteneur de défilement
 				count++
 				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
@@ -253,7 +253,7 @@ func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists
 		if artistMatchesFilters(artist, savedFilter) {
 			// Vérifier si le nom de l'artiste, l'année de commencement, l'année de l'album de début, le nom d'un membre ou le lieu d'un concert correspond au texte de recherche
 			if strings.Contains(strings.ToLower(artist.Name), searchText) ||
-				strconv.Itoa(artist.YearStarted) == searchText ||
+				strconv.Itoa(artist.CreationDate) == searchText ||
 				strings.Contains(artist.FirstAlbum, searchText) || // Adjusted for string comparison
 				checkMemberName(artist.Members, searchText) ||
 				checkConcertLocation(artist.NextConcerts, searchText) { // Adjusted to use artist.NextConcerts
@@ -320,7 +320,7 @@ func artistMatchesFilters(artist Artist, filter saveFilter) bool {
 	}
 
 	// Vérifier si l'année de commencement de l'artiste est dans la plage sélectionnée par l'utilisateur
-	if filter.CreationRange > 0 && float64(artist.YearStarted) < filter.CreationRange {
+	if filter.CreationRange > 0 && float64(artist.CreationDate) < filter.CreationRange {
 		return false
 	}
 
