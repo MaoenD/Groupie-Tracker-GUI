@@ -19,7 +19,7 @@ import (
 /*********************************** DISPLAY ************************************/
 /********************************************************************************/
 
-func CreateCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
+func CreateCardGeneralInfo(artist Artist, relation Relation, myApp fyne.App) fyne.CanvasObject {
 	response, err := http.Get(artist.Image)
 	if err != nil {
 		fmt.Println("Failed to load image:", err)
@@ -56,7 +56,7 @@ func CreateCardGeneralInfo(artist Artist, myApp fyne.App) fyne.CanvasObject {
 
 	// Création du bouton "Plus d'informations"
 	button := widget.NewButton("          Plus d'informations          ", func() {
-		SecondPage(artist, myApp)
+		SecondPage(artist, relation, myApp)
 	})
 
 	// Création du bouton de like
@@ -223,18 +223,6 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 			}
 		}
 	}
-
-	// Vérifier si le nombre de suggestions affichées est inférieur au nombre total d'artistes et si la limite a été atteinte
-	if count < len(artists) && count >= limit {
-		// Ajouter un bouton "Plus de résultats" pour charger davantage de résultats
-		showMoreButton := widget.NewButton("More results", func() {
-			GenerateSearchSuggestions(text, scrollContainer, artists, myApp, limit+5)
-		})
-		scrollContainer.Add(showMoreButton)
-	}
-
-	// Retourner le nombre total de suggestions affichées
-	return count
 }
 
 func Recherche(searchBar *widget.Entry, scrollContainer *fyne.Container, artists []Artist, myApp fyne.App) {

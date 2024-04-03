@@ -2,19 +2,16 @@ package Functions
 
 import (
 	"fmt"
-	"image/color"
-	"io"
-	"log"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"io"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 var CreationDateRange *widget.Slider
@@ -352,101 +349,60 @@ func applyFilter() saveFilter {
 	return savedFilter // Retourner les filtres sauvegardés
 }
 
-func SecondPage(artist Artist, myApp fyne.App) {
-	// Créer une nouvelle fenêtre pour afficher les informations de l'artiste
+func SecondPage(artist Artist, relation Relation, myApp fyne.App) {
 	myWindow := myApp.NewWindow("Information - " + artist.Name)
 
-	// Définir l'icône de la fenêtre avec le logo de l'application
-	logo, _ := fyne.LoadResourceFromPath("public/img/logo.png")
-	myWindow.SetIcon(logo)
+	logo, err := fyne.LoadResourceFromURLString("https://developer.fyne.io/img/fyne-logo.png")
+	if err != nil {
+		log.Println("Error loading logo:", err)
+	} else {
+		myWindow.SetIcon(logo)
+	}
 
-	// Charger l'image de l'artiste et la redimensionner pour l'affichage
 	response, err := http.Get(artist.Image)
 	if err != nil {
-		log.Println("Failed to load image:", err)
+		log.Println("Failed to load artist image:", err)
+		return
 	}
 	defer response.Body.Close()
 
-	// Lire les données de l'image
 	imageData, err := io.ReadAll(response.Body)
 	if err != nil {
-		// Gérer l'erreur lors de la lecture des données de l'image
 		log.Println("Failed to read image data:", err)
+		return
 	}
 
-	// Obtenir le type de fichier de l'image à partir de l'URL
-	parts := strings.Split(artist.Image, ".")
-	fileType := parts[len(parts)-1]
-
-	// Créer une image à partir des données lues et du type de fichier
-	image := canvas.NewImageFromReader(strings.NewReader(string(imageData)), fileType)
-
+	image := canvas.NewImageFromReader(strings.NewReader(string(imageData)), "image/jpeg")
 	image.FillMode = canvas.ImageFillContain
 	image.SetMinSize(fyne.NewSize(320, 320))
 	image.Resize(fyne.NewSize(220, 220))
 
-	// Calculer la moyenne de la couleur de l'image
-	r, _, b, a := getAverageColor(image)
-
-	// Créer un rectangle avec la couleur moyenne comme couleur de fond
-	backgroundRect := canvas.NewRectangle(color.RGBA{uint8(r), uint8(r), uint8(b), uint8(a)})
-	backgroundRect.Resize(backgroundRect.MinSize())
-
-	// Créer des étiquettes pour afficher les informations de l'artiste
-	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
+	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.CreationDate))
 	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.FirstAlbum))
 	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))
-	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Dates, artist.LastConcert.Locations))
-	nextConcertLabel := widget.NewLabel("Next Concert:")
 
-	// Vérifier s'il y a un prochain concert et l'afficher s'il y en a un
-	if len(artist.NextConcerts) > 0 && len(artist.NextConcerts[0].Dates) > 0 {
-		dateStr := artist.NextConcerts[0].Dates[0]           // Take the first date string
-		parsedDate, err := time.Parse("02-01-2006", dateStr) // Adjust the layout as necessary
-		if err != nil {
-			// Handle parsing error
-			fmt.Println("Error parsing date:", err)
-			nextConcertLabel.Text += " Error in date format"
-		} else {
-			formattedDate := parsedDate.Format("02-Jan-2006")
-			nextConcertLabel.Text += fmt.Sprintf(" %s - %s", formattedDate, artist.NextConcerts[0].Locations)
+	// Concert information
+	concertInfo := container.NewVBox()
+	for location, dates := range relation.DatesLocations {
+		for _, date := range dates {
+			concertLabel := widget.NewLabel(fmt.Sprintf("Location: %s, Date: %s", location, date))
+			concertInfo.Add(concertLabel)
 		}
-	} else {
-		nextConcertLabel.Text += " No upcoming concerts" // Affichage si aucun événement à venir
 	}
 
-	// Aligner les étiquettes au centre
-	nameLabel.Alignment = fyne.TextAlignCenter
-	yearLabel.Alignment = fyne.TextAlignCenter
-	debutAlbumLabel.Alignment = fyne.TextAlignCenter
-	membersLabel.Alignment = fyne.TextAlignCenter
-	lastConcertLabel.Alignment = fyne.TextAlignCenter
-	nextConcertLabel.Alignment = fyne.TextAlignCenter
+	scrollContainer := container.NewScroll(concertInfo)
+	scrollContainer.SetMinSize(fyne.NewSize(400, 200))
 
-	// Créer un conteneur pour organiser les informations de l'artiste
-	infoContainer := container.NewVBox(
-		image,            // Ajouter l'image
-		nameLabel,        // Ajouter le nom
-		yearLabel,        // Ajouter l'année de commencement
-		debutAlbumLabel,  // Ajouter la date de l'album
-		membersLabel,     // Ajouter les noms des membres
-		lastConcertLabel, // Ajouter la date du dernier concert
-		nextConcertLabel, // Ajouter le label du prochain concert
+	content := container.NewVBox(
+		image,
+		nameLabel,
+		yearLabel,
+		debutAlbumLabel,
+		membersLabel,
+		scrollContainer,
 	)
 
-	// Définir une taille fixe pour le conteneur d'informations
-	infoContainer.Resize(fyne.NewSize(300, 200))
-
-	// Créer un conteneur pour la carte de l'artiste avec le rectangle de fond et le conteneur d'informations
-	cardContent := container.New(layout.NewBorderLayout(nil, nil, nil, nil),
-		backgroundRect, // Ajouter le rectangle de fond en tant qu'arrière-plan
-		infoContainer,  // Ajouter le conteneur d'informations
-	)
-	cardContent.Resize(fyne.NewSize(300, 300))
-
-	// Définir le contenu de la fenêtre et l'afficher au centre de l'écran
-	myWindow.SetContent(cardContent)
-	myWindow.CenterOnScreen()
+	myWindow.SetContent(content)
 	myWindow.Show()
 }
