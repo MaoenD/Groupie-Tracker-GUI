@@ -153,7 +153,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				count++
 				artistButton := widget.NewButton(artist.Name, func(a Artist) func() {
 					return func() {
-						SecondPage(artist, relation, myApp)
+						SecondPage(a, relation, myApp)
 					}
 				}(artist))
 				artistButton.Importance = widget.LowImportance
@@ -166,7 +166,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				count++
 				artistButton := widget.NewButton(artist.Name+" (Year Started: "+text+")", func(a Artist) func() {
 					return func() {
-						SecondPage(artist, relation, myApp)
+						SecondPage(a, relation, myApp)
 					}
 				}(artist))
 				artistButton.Importance = widget.LowImportance
@@ -180,7 +180,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 				count++
 				artistButton := widget.NewButton(artist.Name+" (Debut Album: "+albumYearParts[2]+")", func(a Artist) func() {
 					return func() {
-						SecondPage(artist, relation, myApp)
+						SecondPage(a, relation, myApp)
 					}
 				}(artist))
 				artistButton.Importance = widget.LowImportance
@@ -195,7 +195,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 						count++
 						artistButton := widget.NewButton(artist.Name+" (Member Name: "+member+")", func(a Artist) func() {
 							return func() {
-								SecondPage(artist, relation, myApp)
+								SecondPage(a, relation, myApp)
 							}
 						}(artist))
 						artistButton.Importance = widget.LowImportance
@@ -212,7 +212,7 @@ func GenerateSearchSuggestions(text string, scrollContainer *fyne.Container, art
 						count++
 						artistButton := widget.NewButton(artist.Name+" (Concert Location: "+string(location)+")", func(a Artist) func() {
 							return func() {
-								SecondPage(artist, relation, myApp)
+								SecondPage(a, relation, myApp)
 							}
 						}(artist))
 						artistButton.Importance = widget.LowImportance
