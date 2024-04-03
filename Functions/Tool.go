@@ -2,11 +2,13 @@ package Functions
 
 import (
 	"fmt"
-	"fyne.io/fyne/v2"
 	"image"
 	"image/color"
 	"os"
 	"strings"
+	"time"
+
+	"fyne.io/fyne/v2"
 )
 
 /********************************************************************************/
@@ -120,4 +122,10 @@ func contains(slice []string, str string) bool {
 		}
 	}
 	return false
+}
+
+const layoutDate = "02-01-2006"
+
+func parseFirstAlbumDate(albumDate string) (time.Time, error) {
+	return time.Parse(layoutDate, albumDate)
 }

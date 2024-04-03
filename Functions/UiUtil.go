@@ -2,17 +2,22 @@ package Functions
 
 import (
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"strings"
 )
+
+var creationDateRange *widget.Slider
 
 func CreateBlockContent() fyne.CanvasObject {
 	// Chemin de l'image à charger
-	imagePath := "public/world_map1.jpg"
+	imagePath := "public/img/world_map1.jpg"
 
 	// Charger l'image depuis le chemin spécifié
 	image := canvas.NewImageFromFile(imagePath)
@@ -107,21 +112,60 @@ func Filter(myApp fyne.App) {
 		// Ferme la fenêtre des filtres si elle est ouverte
 		myWindow.Close()
 	}
+	artists, err := LoadArtists("https://groupietrackers.herokuapp.com/api/artists")
+	if err != nil {
+		log.Printf("Failed to load artists: %v", err)
+		return // Exit if there was an error fetching the artist data
+	}
+
+	// Fetch location data (assuming this returns data relevant for the filter, e.g., concert locations)
+	concerts, err := LoadRelations("https://groupietrackers.herokuapp.com/api/locations")
+	if err != nil {
+		log.Printf("Failed to load locations: %v", err)
+		return // Exit if there was an error fetching the location data
+	}
 	// Initialise les filtres de l'application
-	initializeFilters(myApp)
+	initializeFilters(myApp, artists, concerts)
 }
 
-func initializeFilters(myApp fyne.App) {
+func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 	// Initialisation des valeurs minimales et maximales pour les années de création et de sortie des premiers albums
-	minCreationYear = Artists[0].CreationDate
-	maxCreationYear = Artists[0].YearStarted
-	minFirstAlbumYear = Artists[0].FirstAlbum()
-	maxFirstAlbumYear = Artists[0].DebutAlbum.Year()
+	minCreationYear := artists[0].YearStarted
+	maxCreationYear := artists[0].YearStarted
+
+	// On asumme que le format est "DD-MM-YYYY" et converti en int
+	parseYear := func(dateStr string) int {
+		parts := strings.Split(dateStr, "-")
+		year, _ := strconv.Atoi(parts[2])
+		return year
+	}
+
+	minFirstAlbumYear := parseYear(artists[0].FirstAlbum)
+	maxFirstAlbumYear := parseYear(artists[0].FirstAlbum)
+
+	for _, artist := range artists {
+		// Mise à jour des valeurs minimales et maximales pour les années de création
+		if artist.YearStarted < minCreationYear {
+			minCreationYear = artist.YearStarted
+		}
+		if artist.YearStarted > maxCreationYear {
+			maxCreationYear = artist.YearStarted
+		}
+
+		// Parsing de l'année FirstAlbum de la string date
+		albumYear := parseYear(artist.FirstAlbum)
+		if albumYear < minFirstAlbumYear {
+			minFirstAlbumYear = albumYear
+		}
+		if albumYear > maxFirstAlbumYear {
+			maxFirstAlbumYear = albumYear
+		}
+	}
 
 	// Initialisation des emplacements de concerts disponibles
-	concertLocations = make([]string, 0)
+	concertLocations := make([]string, 0)
 	locationsMap := make(map[string]bool)
-	for _, artist := range Artists {
+	for _, artist := range artists {
 		// Mise à jour des valeurs minimales et maximales pour les années de création
 		if artist.YearStarted < minCreationYear {
 			minCreationYear = artist.YearStarted
@@ -130,14 +174,15 @@ func initializeFilters(myApp fyne.App) {
 			maxCreationYear = artist.YearStarted
 		}
 		// Mise à jour des valeurs minimales et maximales pour les années du premier album
-		if year := artist.DebutAlbum.Year(); year < minFirstAlbumYear {
-			minFirstAlbumYear = year
+		albumYear := parseYear(artist.FirstAlbum)
+		if albumYear < minFirstAlbumYear {
+			minFirstAlbumYear = albumYear
 		}
-		if year := artist.DebutAlbum.Year(); year > maxFirstAlbumYear {
-			maxFirstAlbumYear = year
+		if albumYear > maxFirstAlbumYear {
+			maxFirstAlbumYear = albumYear
 		}
 		// Recherche des emplacements de concerts uniques
-		for _, concert := range artist.NextConcerts {
+		for _, concert := range concerts {
 			if _, found := locationsMap[concert.Location]; !found {
 				concertLocations = append(concertLocations, concert.Location)
 				locationsMap[concert.Location] = true
@@ -306,7 +351,7 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	myWindow := myApp.NewWindow("Information - " + artist.Name)
 
 	// Définir l'icône de la fenêtre avec le logo de l'application
-	logo, _ := fyne.LoadResourceFromPath("public/logo.png")
+	logo, _ := fyne.LoadResourceFromPath("public/img/logo.png")
 	myWindow.SetIcon(logo)
 
 	// Calculer la couleur moyenne de l'image de l'artiste
@@ -326,9 +371,9 @@ func SecondPage(artist Artist, myApp fyne.App) {
 	// Créer des étiquettes pour afficher les informations de l'artiste
 	nameLabel := widget.NewLabelWithStyle(artist.Name, fyne.TextAlignLeading, fyne.TextStyle{Bold: true})
 	yearLabel := widget.NewLabel(fmt.Sprintf("Year Started: %d", artist.YearStarted))
-	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.DebutAlbum.Format("02-Jan-2006")))
+	debutAlbumLabel := widget.NewLabel(fmt.Sprintf("Debut Album: %s", artist.FirstAlbum))
 	membersLabel := widget.NewLabel(fmt.Sprintf("Members: %s", strings.Join(artist.Members, ", ")))
-	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Date.Format("02-Jan-2006"), artist.LastConcert.Location))
+	lastConcertLabel := widget.NewLabel(fmt.Sprintf("Last Concert: %s - %s", artist.LastConcert.Date, artist.LastConcert.Location))
 	nextConcertLabel := widget.NewLabel("Next Concert:")
 
 	// Vérifier s'il y a un prochain concert et l'afficher s'il y en a un

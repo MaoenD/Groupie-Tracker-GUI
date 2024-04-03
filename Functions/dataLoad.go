@@ -28,8 +28,8 @@ func LoadArtists(url string) ([]Artist, error) {
 	return artists, nil
 }
 
-func LoadLocations(url string) ([]Concert, error) {
-	var locations []Concert
+func LoadLocations(url string) ([]Location, error) {
+	var location []Location
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -41,16 +41,33 @@ func LoadLocations(url string) ([]Concert, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(body, &locations)
+	err = json.Unmarshal(body, &location)
 	if err != nil {
 		return nil, err
 	}
 
-	return locations, nil
+	return location, nil
 }
 
-func LoadRelations(url string) ([]Relation, error) {
-	var relations []Relation
+func LoadRelations(url string) ([]Concert, error) {
+	var concerts []Concert
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	err = json.NewDecoder(resp.Body).Decode(&concerts)
+	if err != nil {
+		return nil, err
+	}
+
+	return concerts, nil
+}
+
+// coucou
+func LoadDate(url string) ([]Dates, error) {
+	var dates []Dates
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -62,10 +79,10 @@ func LoadRelations(url string) ([]Relation, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(body, &relations)
+	err = json.Unmarshal(body, &dates)
 	if err != nil {
 		return nil, err
 	}
 
-	return relations, nil
+	return dates, nil
 }
