@@ -196,7 +196,8 @@ func initializeFilters(myApp fyne.App, artists []Artist, concerts []Concert) {
 			// Concatenate concert locations into a single string
 			locationStr := strings.Join(concert.Locations, ", ")
 			if _, found := locationsMap[locationStr]; !found {
-				concertLocations = append(concertLocations, locationStr)
+				formattedLocation := formatLocation(locationStr)
+				concertLocations = append(concertLocations, formattedLocation)
 				locationsMap[locationStr] = true
 			}
 		}
