@@ -46,7 +46,6 @@ func CreateBlockContent() fyne.CanvasObject {
 	// Create an empty button for adding interaction (to be filled as per specific logic)
 	button := widget.NewButton("", func() {
 		// Action to perform when the button is clicked (to be filled as per needs)
-		fmt.Print("Map logic to be integrated here")
 	})
 	button.Importance = widget.LowImportance // Set the button importance as low
 	button.Resize(image.MinSize())           // Resize the button to match the image size

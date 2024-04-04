@@ -5,7 +5,6 @@ Groupie Tracker est une application développée en Go qui utilise une API pour 
 ![Démo app](public/img/applicationDemo.png)
 
 ## Fonctionnalités
-R
 - Affichage des informations sur les artistes, y compris les membres, les dates de début d'activité, les premiers albums, etc.
 - Barre de recherche permettant de rechercher des artistes, des membres, des dates, etc.
 - Filtres pour les artistes et les concerts basés sur la date de création, la date du premier album, le nombre de membres, etc.
